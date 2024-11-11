@@ -39,11 +39,11 @@ def optimize_resume():
         return jsonify({'error': 'Failed to analyze resume.'}), 500
     
     # Optimize resume
-    optimized_resume, optimization_steps = optimizer.optimize_resume(analysis)
+    optimized_resume = optimizer.optimize_resume(analysis)
     if not optimized_resume:
         return jsonify({'error': 'Failed to optimize resume.'}), 500
     
-    return jsonify({'optimized_resume': optimized_resume, 'optimization_steps': optimization_steps}), 200
+    return jsonify({'optimized_resume': optimized_resume}), 200
 
 @app.route('/download_resume')
 def download_resume():

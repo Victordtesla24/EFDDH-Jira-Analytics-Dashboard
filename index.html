@@ -4,48 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resume Optimizer</title>
-    <link rel="stylesheet" href="style.css">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
 </head>
 <body>
     <div class="container">
-        <h1>Resume Optimizer</h1>
-        <form id="resumeForm">
-            <div>
-                <label for="resumeFile">Upload Resume:</label>
-                <input type="file" id="resumeFile" name="resume" accept=".pdf,.doc,.docx">
+        <h1 class="mt-5">Resume Optimizer</h1>
+        <form id="resumeForm" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="resume">Upload Resume (PDF):</label>
+                <input type="file" class="form-control" id="resume" name="resume" accept=".pdf" required>
             </div>
-            <div>
+            <div class="form-group">
                 <label for="jobDescription">Job Description:</label>
-                <textarea id="jobDescription" name="job_description" rows="4" cols="50"></textarea>
+                <textarea class="form-control" id="jobDescription" name="job_description" rows="5" required></textarea>
             </div>
-            <button id="submitBtn" type="submit">Optimize Resume</button>
+            <button type="submit" class="btn btn-primary">Optimize Resume</button>
         </form>
-        <div id="results" style="display: none;">
-            <h2>Results</h2>
-            <div id="analysisResults"></div>
-            <button id="downloadBtn">Download Optimized Resume</button>
+        <div id="spinner" class="spinner-border text-primary mt-3" role="status" style="display: none;">
+            <span class="sr-only">Loading...</span>
         </div>
-        <div id="optimizationSteps" style="display: none;">
-            <h2>Optimization Steps</h2>
-            <div id="steps"></div>
-        </div>
-        <div class="chat-container">
-            <h2>AI Assistant</h2>
-            <p>Ask the AI Assistant for help with:</p>
-            <ul>
-                <li>Resume optimization tips</li>
-                <li>Job description analysis</li>
-                <li>General career advice</li>
-                <li>System status and help commands</li>
-            </ul>
-            <div id="messages" class="chat-messages"></div>
-            <div class="chat-input">
-                <input id="messageInput" type="text" placeholder="Type a message">
-                <button id="sendButton">Send</button>
-            </div>
-        </div>
+        <div id="results" class="mt-5"></div>
     </div>
-    <script src="script.js"></script>
-    <script src="project0/scripts/src/static/js/main.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
