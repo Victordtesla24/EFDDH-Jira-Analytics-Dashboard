@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Optimizer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Resume Optimizer</h1>
+        <form id="resumeForm">
+            <div>
+                <label for="resumeFile">Upload Resume:</label>
+                <input type="file" id="resumeFile" name="resume" accept=".pdf,.doc,.docx">
+            </div>
+            <div>
+                <label for="jobDescription">Job Description:</label>
+                <textarea id="jobDescription" name="job_description" rows="4" cols="50"></textarea>
+            </div>
+            <button id="submitBtn" type="submit">Optimize Resume</button>
+        </form>
+        <div id="results" style="display: none;">
+            <h2>Results</h2>
+            <div id="analysisResults"></div>
+            <button id="downloadBtn">Download Optimized Resume</button>
+        </div>
+        <div id="optimizationSteps" style="display: none;">
+            <h2>Optimization Steps</h2>
+            <div id="steps"></div>
+        </div>
+        <div class="chat-container">
+            <h2>AI Assistant</h2>
+            <p>Ask the AI Assistant for help with:</p>
+            <ul>
+                <li>Resume optimization tips</li>
+                <li>Job description analysis</li>
+                <li>General career advice</li>
+                <li>System status and help commands</li>
+            </ul>
+            <div id="messages" class="chat-messages"></div>
+            <div class="chat-input">
+                <input id="messageInput" type="text" placeholder="Type a message">
+                <button id="sendButton">Send</button>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script src="project0/scripts/src/static/js/main.js"></script>
+</body>
+</html>
