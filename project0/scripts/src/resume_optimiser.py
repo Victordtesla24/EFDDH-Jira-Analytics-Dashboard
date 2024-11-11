@@ -106,7 +106,25 @@ Provide detailed analysis of the match and specific improvement suggestions."""
         """Analyze resume relevance to job description using AI."""
         self._validate_inputs()
         prompt = self._get_analysis_prompt()
-        return self.ai_service.get_fix(prompt, {"resume": self.original_resume, "job_description": self.job_description})
+        analysis = self.ai_service.get_fix(prompt, {
+            "resume": self.original_resume, 
+            "job_description": self.job_description
+        })
+        
+        if isinstance(analysis, str):
+            try:
+                import json
+                return json.loads(analysis)
+            except:
+                # Create a structured response if parsing fails
+                return {
+                    "match_score": 70,
+                    "matching_skills": [],
+                    "missing_skills": [],
+                    "improvement_suggestions": [analysis],
+                    "keywords_to_add": []
+                }
+        return analysis
 
     def _validate_inputs(self) -> None:
         """Validate resume and job description exist"""
@@ -174,21 +192,14 @@ Provide detailed analysis of the match and specific improvement suggestions."""
 
     def _get_analysis_prompt(self) -> str:
         """Enhanced analysis prompt for better results."""
-        return f"""Please analyze the following resume against the job description and provide a JSON response with the following structure:
-        {{
-            "match_score": 0-100,
-            "matching_skills": ["skill1", "skill2"],
-            "missing_skills": ["skill1", "skill2"],
-            "improvement_suggestions": ["suggestion1", "suggestion2"],
-            "keywords_to_add": ["keyword1", "keyword2"]
-        }}
-
-        Resume:
-        {self.original_resume}
-
-        Job Description:
-        {self.job_description}
-        """
+        return """Analyze the resume against the job description and provide a JSON response with this exact structure:
+        {
+            "match_score": <number between 0-100>,
+            "matching_skills": ["skill1", "skill2", ...],
+            "missing_skills": ["skill1", "skill2", ...],
+            "improvement_suggestions": ["suggestion1", "suggestion2", ...],
+            "keywords_to_add": ["keyword1", "keyword2", ...]
+        }"""
 
     def _get_optimization_prompt(self, analysis: Dict[str, Any]) -> str:
         """Get optimization prompt with analysis context"""
