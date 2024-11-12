@@ -1,0 +1,10 @@
+{
+  "name": "jira-csv-viewer",
+  "version": "1.0.0",
+  "description": "JIRA CSV Data Viewer",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "python -m http.server 8000"
+  },
+  "dependencies": {}
+}
