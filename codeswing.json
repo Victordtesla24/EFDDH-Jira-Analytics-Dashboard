@@ -1,4 +1,5 @@
 {
-  "scripts": [],
-  "styles": []
+  "name": "example-name",
+  "version": "1.0.0",
+  "$schema": "https://json.schemastore.org/web-types.json"
 }
