@@ -99,10 +99,17 @@ class JiraDashboard:
             ).fillna(0)  # Ensure the parenthesis is closed here
             
             # Process sprints more efficiently
-            sprint_mask = df[SPRINT_COLS].notna().any(axis=1)
-            df.loc[sprint_mask, 'Current Sprint'] = df.loc[
-                sprint_mask, SPRINT_COLS
-            ].ffill(axis=1).iloc[:, -1]
+            sprint_cols = [col for col in df.columns if 'Sprint' in col]
+            sprint_mask = df[sprint_cols].notna().any(axis=1)
+            df['Current Sprint'] = df[sprint_cols].ffill(axis=1).iloc[:, -1]
+            
+            # Ensure 'Current Sprint' column exists
+            if 'Current Sprint' not in df.columns:
+                df['Current Sprint'] = 'No Sprint'
+            
+            # Clean and standardize data
+            df = self.clean_data(df)
+            df = self.standardize_columns(df)
             
             return df
             
@@ -137,6 +144,12 @@ class JiraDashboard:
 
     def get_current_sprint_data(self):
         try:
+            # Ensure 'Current Sprint' and 'Status' columns exist
+            if 'Current Sprint' not in self.df.columns:
+                self.df['Current Sprint'] = 'No Sprint'
+            if 'Status' not in self.df.columns:
+                self.df['Status'] = 'Unknown'
+            
             sprint_values = sorted([s for s in self.df['Current Sprint'].unique() if s != 'No Sprint'], key=lambda x: self.extract_sprint_number(x))
             if not sprint_values:
                 logging.warning("No sprint data found")
@@ -144,7 +157,7 @@ class JiraDashboard:
             current_sprint = sprint_values[-1]
             sprint_data = self.df[self.df['Current Sprint'] == current_sprint].copy()
             # Ensure critical columns have no missing values
-            sprint_data.dropna(subset=['Custom field (Story Points)', 'Status'], inplace=True)
+            sprint_data.dropna(subset=[STORY_POINTS_COL, 'Status'], inplace=True)
             logging.info(f"Filtered Sprint Data: {len(sprint_data)} stories after cleaning")
             return sprint_data
         except Exception as e:
@@ -170,7 +183,8 @@ class JiraDashboard:
             self.filter_options(),
             self.summary_cards(),
             self.graphs_layout(),
-            dcc.Input(id='dummy-input', type='hidden', value='dummy')
+            dcc.Input(id='dummy-input', type='hidden', value='dummy'),
+            html.Div(id='error-message', style={'color': 'red'})  # Added error message display
         ])  # Added missing closing brackets
 
     def filter_options(self):

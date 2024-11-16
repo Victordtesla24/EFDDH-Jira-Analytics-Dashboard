@@ -6,6 +6,7 @@ from functools import lru_cache
 from typing import Optional, Dict, Any
 from dataclasses import dataclass
 import hashlib
+from io import StringIO
 
 @dataclass
 class GraphResult:
@@ -84,8 +85,8 @@ class JiraDashboardGraphs:
         """Generate sprint progress visualization using DataFrame JSON string as cache key"""
         try:
             logging.info("Generating sprint progress graph")
-            # Read JSON with split orientation
-            df = pd.read_json(df_json, orient='split')
+            # Wrap JSON string in StringIO
+            df = pd.read_json(StringIO(df_json), orient='split')
             
             # Check for required columns
             required_columns = ['Status', 'Current Sprint']

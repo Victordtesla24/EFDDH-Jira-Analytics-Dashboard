@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  ai-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./src/AIAgent/data:/app/data
+      - ./logs:/app/logs
+      - ./db:/app/db
+    ports:
+      - "5001:80"
+    container_name: ai-agent
+    environment:
+      - DOTNET_ENVIRONMENT=Development
+      - Logging__LogLevel__Default=Debug
+      - MetricsCollection__Interval=60
+      - HealthCheck__Interval=30
+      - AutoHealing__Enabled=true
+      - Logging__LogLevel__AIAgent.Services=Debug
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    networks:
+      - ai-network
+    restart: unless-stopped
+
+networks:
+  ai-network:
+    driver: bridge
