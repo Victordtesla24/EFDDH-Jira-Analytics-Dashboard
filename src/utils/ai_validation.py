@@ -54,11 +54,11 @@ class BatchPromptProcessor:
     def process_batch(self, requests: List[Dict[str, Any]]) -> Dict[str, List[str]]:
         """Process a batch of requests."""
         try:
-            self.client.beta.messages.batches.create(requests=requests)
+            response = self.client.beta.messages.batches.create(requests=requests)
             return {"responses": ["Test batch response"]}
         except anthropic.RateLimitError as e:
             logger.error(f"Rate limit error in batch processing: {e}")
-            return {"responses": []}
+            raise  # Let the error propagate
         except Exception as e:
             logger.error(f"Error in batch processing: {e}")
             return {"responses": []}
@@ -95,7 +95,7 @@ class AIValidator:
         self.last_call_time = time.time()
 
     @lru_cache(maxsize=100)
-    def get_validation_response(self, prompt: str) -> str:
+    def get_validation_response(self, prompt: str) -> Optional[str]:
         """Get cached validation response to reduce API calls"""
         try:
             self._rate_limit_check()
@@ -104,13 +104,13 @@ class AIValidator:
                 max_tokens=self.max_tokens,
                 messages=[{"role": "user", "content": prompt}],
             )
-            return response.content or ""
+            return response.content
         except anthropic.RateLimitError:
             logger.warning("Rate limit exceeded, using fallback validation")
-            return ""
+            return None
         except Exception as e:
             logger.error(f"AI validation error: {str(e)}")
-            return ""
+            return None
 
     def validate_batch(
         self,
