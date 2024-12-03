@@ -1,9 +1,9 @@
 from typing import Any, List, Optional, Union
 
 import pandas as pd
-import plotly.express as px
+import plotly.express as px  # type: ignore
 import streamlit as st
-from plotly.graph_objects import Figure
+from plotly.graph_objects import Figure  # type: ignore
 
 from src.config.settings import settings
 from src.utils.formatting import get_anz_template
@@ -36,7 +36,7 @@ def create_bar_chart(
     x: List[Union[str, int, float]],
     y: List[Union[int, float]],
     title: str,
-    **kwargs: Any
+    **kwargs: Any,
 ) -> Figure:
     """Create a bar chart with ANZ styling."""
     df = pd.DataFrame({"x": x, "y": y})
@@ -56,13 +56,16 @@ def create_bar_chart(
         title=title,
         color_discrete_sequence=color_sequence,
         template=get_anz_template(),
-        **kwargs
+        **kwargs,
     )
     return fig
 
 
 def create_pie_chart(
-    names: List[str], values: List[Union[int, float]], title: str, **kwargs: Any
+    names: List[str],
+    values: List[Union[int, float]],
+    title: str,
+    **kwargs: Any,
 ) -> Figure:
     """Create a pie chart with ANZ styling."""
     df = pd.DataFrame({"names": names, "values": values})
@@ -75,6 +78,6 @@ def create_pie_chart(
         title=title,
         color_discrete_sequence=color_sequence,
         template=get_anz_template(),
-        **kwargs
+        **kwargs,
     )
     return fig

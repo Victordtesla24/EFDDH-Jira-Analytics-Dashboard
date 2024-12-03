@@ -18,15 +18,14 @@ class ValidationResult:
 
 
 class BatchPromptProcessor:
-    def __init__(self, chunk_size=8192):
+    def __init__(self, chunk_size: int = 8192) -> None:
         self.chunk_size = chunk_size
-        self.max_tokens = 1000  # Added max_tokens attribute
+        self.max_tokens = 1000
         self.client = anthropic.Anthropic()
         self.last_call_time = 0
-        self.min_delay = 0.5  # Rate limit control
+        self.min_delay = 0.5
 
     def process_chunks(self, prompt: str) -> List[str]:
-        # Split prompt into manageable chunks only if longer than chunk_size
         chunks = []
         if len(prompt) > self.chunk_size:
             chunks = [
@@ -36,12 +35,11 @@ class BatchPromptProcessor:
         else:
             chunks = [prompt]
 
-        # Process each chunk with delay
         results = []
         for chunk in chunks:
             try:
                 response = self._process_single_chunk(chunk)
-                if response:  # Only append if response is not None
+                if response:
                     results.append(response)
                 current_time = time.time()
                 time_since_last_call = current_time - self.last_call_time
@@ -50,20 +48,20 @@ class BatchPromptProcessor:
                 self.last_call_time = time.time()
             except Exception as e:
                 logger.error(f"Error processing chunk: {e}")
-                raise  # Re-raise the exception
+                raise
         return results
 
     def process_batch(self, requests: List[Dict[str, Any]]) -> Dict[str, List[str]]:
         """Process a batch of requests."""
         try:
-            response = self.client.beta.messages.batches.create(requests=requests)
+            self.client.beta.messages.batches.create(requests=requests)
             return {"responses": ["Test batch response"]}
         except anthropic.RateLimitError as e:
             logger.error(f"Rate limit error in batch processing: {e}")
-            return {"responses": []}  # Return empty responses list instead of None
+            return {"responses": []}
         except Exception as e:
             logger.error(f"Error in batch processing: {e}")
-            return {"responses": []}  # Return empty responses list instead of None
+            return {"responses": []}
 
     def _process_single_chunk(self, chunk: str) -> Optional[str]:
         try:
@@ -82,13 +80,13 @@ class BatchPromptProcessor:
 
 
 class AIValidator:
-    def __init__(self):
+    def __init__(self) -> None:
         self.client = anthropic.Anthropic()
         self.last_call_time = 0
-        self.min_delay = 1  # Minimum delay between API calls in seconds
-        self.max_tokens = 1000  # Maximum tokens per request
+        self.min_delay = 1
+        self.max_tokens = 1000
 
-    def _rate_limit_check(self):
+    def _rate_limit_check(self) -> None:
         """Implement rate limiting between API calls"""
         current_time = time.time()
         time_since_last_call = current_time - self.last_call_time
@@ -106,13 +104,13 @@ class AIValidator:
                 max_tokens=self.max_tokens,
                 messages=[{"role": "user", "content": prompt}],
             )
-            return response.content or ""  # Return empty string instead of None
+            return response.content or ""
         except anthropic.RateLimitError:
             logger.warning("Rate limit exceeded, using fallback validation")
-            return ""  # Return empty string instead of None
+            return ""
         except Exception as e:
             logger.error(f"AI validation error: {str(e)}")
-            return ""  # Return empty string instead of None
+            return ""
 
     def validate_batch(
         self, prompts: List[Dict[str, str]], model: str = "claude-3-haiku-20240307"
@@ -147,7 +145,11 @@ def validate_visualization_output(output: Optional[Dict[str, Any]]) -> bool:
     """Validate the complete visualization output."""
     if output is None:
         return False
-    if not output.get("charts") or not output.get("metrics"):
+
+    has_required_components = (
+        output.get("charts") is not None and output.get("metrics") is not None
+    )
+    if not has_required_components:
         return False
 
     # Validate each chart
@@ -169,7 +171,10 @@ def validate_chart_elements(chart: Figure) -> bool:
         return False
 
     # Check if title exists and has text
-    if not hasattr(chart.layout, "title") or not chart.layout.title.text:
+    has_valid_title = (
+        hasattr(chart.layout, "title") and chart.layout.title.text is not None
+    )
+    if not has_valid_title:
         return False
 
     # Validate data traces
@@ -186,11 +191,10 @@ def validate_data_consistency(data: Dict[str, Any]) -> bool:
 
     # Check metric format
     for metric in data["metrics"]:
-        if (
-            not isinstance(metric, dict)
-            or "label" not in metric
-            or "value" not in metric
-        ):
+        has_required_fields = (
+            isinstance(metric, dict) and "label" in metric and "value" in metric
+        )
+        if not has_required_fields:
             return False
 
     return True

@@ -1,5 +1,5 @@
 import logging
-from typing import Callable, List, cast
+from typing import Callable, List
 
 import pandas as pd
 import plotly.express as px
@@ -51,7 +51,7 @@ def show_epic_progress(data: pd.DataFrame) -> None:
 
     # Prepare data
     status_agg: Callable[[pd.Series], int] = lambda x: (x == "Done").sum()
-    epic_data: pd.DataFrame = (
+    epic_data = (
         data.groupby("Epic Name")
         .agg({"Story Points": "sum", "Status": status_agg})
         .reset_index()
@@ -68,7 +68,7 @@ def show_epic_progress(data: pd.DataFrame) -> None:
     epic_data["In Progress"] = epic_data["Total Points"] - epic_data["Completed"]
 
     # Create visualization
-    fig: Figure = px.bar(
+    fig = px.bar(
         epic_data,
         x="Epic Name",
         y=["Completed", "In Progress"],
@@ -86,18 +86,18 @@ def show_velocity_metrics(data: pd.DataFrame) -> None:
         return
 
     # Clean data
-    metrics_data: pd.DataFrame = data.copy()
+    metrics_data = data.copy()
     metrics_data = metrics_data.dropna(subset=["Story Points", "Status"])
 
     # Calculate metrics only for completed items
-    completed: pd.DataFrame = metrics_data[metrics_data["Status"] == "Done"]
+    completed = metrics_data[metrics_data["Status"] == "Done"]
 
     if len(completed) == 0:
         st.warning("No completed items found for velocity calculation")
         return
 
     # Calculate velocity (points per week)
-    velocity: float = completed["Story Points"].sum() / max(1, len(completed))
+    velocity = completed["Story Points"].sum() / max(1, len(completed))
 
     # Display metrics
     cols = st.columns(2)

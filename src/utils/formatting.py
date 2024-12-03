@@ -1,7 +1,7 @@
 from datetime import datetime
-from typing import Union
+from typing import Any, Union
 
-import plotly.graph_objects as go
+import plotly.graph_objects as go  # type: ignore
 
 
 def format_date(date: Union[str, datetime]) -> str:
@@ -25,7 +25,7 @@ def format_days(value: float) -> str:
     return f"{value:.2f} days"
 
 
-def get_anz_template() -> dict:
+def get_anz_template() -> dict[str, Any]:
     """Get ANZ chart template."""
     return {
         "layout": go.Layout(
