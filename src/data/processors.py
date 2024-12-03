@@ -1,6 +1,6 @@
 from typing import Any, Dict
 
-import pandas as pd
+import pandas as pd  # type: ignore
 
 
 class JiraDataProcessor:
