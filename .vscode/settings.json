@@ -1,7 +1,5 @@
 {
-    "python.testing.pytestArgs": [
-        "Jira_Dashboard"
-    ],
-    "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true
+    "files.associations": {
+        "PKG-INFO": "plaintext"
+    }
 }

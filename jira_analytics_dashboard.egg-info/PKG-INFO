@@ -1,0 +1,30 @@
+Metadata-Version: 2.1
+Name: jira-analytics-dashboard
+Version: 0.1.0
+Summary: A Streamlit dashboard for JIRA analytics
+Author: Your Name
+Author-email: your.email@example.com
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Requires-Python: >=3.8
+Requires-Dist: streamlit>=1.24.0
+Requires-Dist: pandas>=1.5.0
+Requires-Dist: numpy>=1.23.0
+Requires-Dist: plotly>=5.13.0
+Requires-Dist: matplotlib>=3.7.0
+Requires-Dist: pytest>=7.3.1
+Requires-Dist: pytest-cov>=4.0.0
+Requires-Dist: pytest-asyncio>=0.23.0
+Requires-Dist: pytest-mock>=3.10.0
+Requires-Dist: black>=22.3.0
+Requires-Dist: flake8>=6.0.0
+Requires-Dist: isort>=5.12.0
+Requires-Dist: mypy>=1.3.0
+Requires-Dist: python-dotenv>=1.0.0
+Requires-Dist: anthropic>=0.3.0
