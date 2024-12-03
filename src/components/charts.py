@@ -1,6 +1,9 @@
+from typing import Any, List, Optional, Union
+
 import pandas as pd
 import plotly.express as px
 import streamlit as st
+from plotly.graph_objects import Figure
 
 from src.config.settings import settings
 from src.utils.formatting import get_anz_template
@@ -29,13 +32,18 @@ def create_interactive_charts(filtered_data: pd.DataFrame) -> None:
     st.plotly_chart(fig, use_container_width=True)
 
 
-def create_bar_chart(x, y, title: str, **kwargs):
+def create_bar_chart(
+    x: List[Union[str, int, float]],
+    y: List[Union[int, float]],
+    title: str,
+    **kwargs: Any
+) -> Figure:
     """Create a bar chart with ANZ styling."""
     df = pd.DataFrame({"x": x, "y": y})
 
     # Handle color and color_discrete_sequence
-    color = kwargs.pop("color", None)
-    color_sequence = kwargs.pop(
+    color: Optional[str] = kwargs.pop("color", None)
+    color_sequence: List[str] = kwargs.pop(
         "color_discrete_sequence", settings.charts.color_palette
     )
     if color:
@@ -53,10 +61,12 @@ def create_bar_chart(x, y, title: str, **kwargs):
     return fig
 
 
-def create_pie_chart(names, values, title: str, **kwargs):
+def create_pie_chart(
+    names: List[str], values: List[Union[int, float]], title: str, **kwargs: Any
+) -> Figure:
     """Create a pie chart with ANZ styling."""
     df = pd.DataFrame({"names": names, "values": values})
-    color_sequence = kwargs.pop("colors", settings.charts.color_palette)
+    color_sequence: List[str] = kwargs.pop("colors", settings.charts.color_palette)
 
     fig = px.pie(
         df,

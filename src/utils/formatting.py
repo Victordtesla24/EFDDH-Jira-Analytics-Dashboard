@@ -8,7 +8,8 @@ def format_date(date: Union[str, datetime]) -> str:
     """Format date consistently."""
     if isinstance(date, str):
         try:
-            date = datetime.strptime(date, "%Y-%m-%d")
+            parsed_date = datetime.strptime(date, "%Y-%m-%d")
+            return parsed_date.strftime("%d/%m/%Y")
         except ValueError:
             return date  # Return original string if parsing fails
     return date.strftime("%d/%m/%Y")

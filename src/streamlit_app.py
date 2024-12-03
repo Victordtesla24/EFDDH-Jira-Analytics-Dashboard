@@ -1,8 +1,6 @@
 import streamlit as st
 
 from src.components.visualizations import (show_charts, show_epic_progress,
-                                           show_status_metrics,
-                                           show_summary_metrics,
                                            show_velocity_metrics)
 from src.config.settings import settings
 from src.data.data_loader import load_data, prepare_data
@@ -90,6 +88,9 @@ with tab1:
                 st.stop()
 
             jira_data = prepare_data(jira_data)
+            if jira_data is None:
+                st.error("Failed to prepare data. Please check the data format.")
+                st.stop()
 
             # Sidebar filters with enhanced UI
             with st.sidebar:
@@ -97,9 +98,11 @@ with tab1:
                 st.markdown("---")
 
                 # Date range filter with proper type handling
+                min_date = jira_data["Created"].min().date()
+                max_date = jira_data["Created"].max().date()
                 date_range = st.date_input(
                     "Select Date Range",
-                    value=[jira_data["Created"].min(), jira_data["Created"].max()],
+                    value=[min_date, max_date],
                     key="date_range",
                 )
 
@@ -108,35 +111,38 @@ with tab1:
                     start_date, end_date = date_range
                 else:
                     # Default to min/max dates if not properly selected
-                    start_date = jira_data["Created"].min()
-                    end_date = jira_data["Created"].max()
+                    start_date = min_date
+                    end_date = max_date
 
                 st.subheader("Issue Filters")
+                priorities = sorted(jira_data["Priority"].unique().tolist())
                 selected_priority: list[str] = st.multiselect(
                     "Priority",
-                    options=jira_data["Priority"].unique(),
-                    default=jira_data["Priority"].unique(),
+                    options=priorities,
+                    default=priorities,
                     key="priority",
                 )
 
+                issue_types = sorted(jira_data["Issue Type"].unique().tolist())
                 selected_issue_type: list[str] = st.multiselect(
                     "Select Issue Type",
-                    jira_data["Issue Type"].unique(),
-                    jira_data["Issue Type"].unique(),
+                    options=issue_types,
+                    default=issue_types,
                 )
 
+                sprints = sorted(jira_data["Sprint"].dropna().unique().tolist())
                 selected_sprint: list[str] = st.multiselect(
                     "Sprint",
-                    options=jira_data["Sprint"].dropna().unique(),
-                    default=jira_data["Sprint"].dropna().unique(),
+                    options=sprints,
+                    default=sprints,
                     key="sprint",
                 )
 
                 # Reset filters button
                 if st.button("Reset Filters"):
-                    st.session_state.priority = jira_data["Priority"].unique()
-                    st.session_state.issue_type = jira_data["Issue Type"].unique()
-                    st.session_state.sprint = jira_data["Sprint"].dropna().unique()
+                    st.session_state.priority = priorities
+                    st.session_state.issue_type = issue_types
+                    st.session_state.sprint = sprints
                     st.rerun()
 
             # Filter data with proper date handling
@@ -152,7 +158,11 @@ with tab1:
             # Show Metrics and Visuals in columns
             col1, col2 = st.columns([2, 1])
             with col1:
-                show_summary_metrics(filtered_data)
+                # Display basic metrics
+                total_issues = len(filtered_data)
+                completed_issues = len(filtered_data[filtered_data["Status"] == "Done"])
+                st.metric("Total Issues", total_issues)
+                st.metric("Completed Issues", completed_issues)
             with col2:
                 info_text = (
                     f"Showing data for {len(filtered_data)} issues "
@@ -161,7 +171,7 @@ with tab1:
                 st.info(info_text)
 
             # Show charts with enhanced styling
-            show_charts(jira_data, filtered_data)
+            show_charts(filtered_data)
 
             # Add new sections
             st.markdown("---")
@@ -170,7 +180,10 @@ with tab1:
             st.markdown("---")
             col1, col2 = st.columns(2)
             with col1:
-                show_status_metrics(filtered_data)
+                # Display status distribution
+                status_counts = filtered_data["Status"].value_counts()
+                st.subheader("Status Distribution")
+                st.bar_chart(status_counts)
             with col2:
                 show_epic_progress(filtered_data)
 

@@ -81,7 +81,9 @@ def prepare_data(df: Optional[pd.DataFrame]) -> Optional[pd.DataFrame]:
         df["Resolved"] = pd.to_datetime(df["Resolved"])
 
     # Handle null values with specific defaults
-    df["Story Points"] = df["Story Points"].fillna(0).infer_objects(copy=False)
+    # First fill null values, then infer objects without copy parameter
+    df["Story Points"] = df["Story Points"].fillna(0)
+    df["Story Points"] = df["Story Points"].infer_objects()
     df["Epic Name"] = df["Epic Name"].fillna("No Epic")
     df["Status"] = df["Status"].fillna("In Progress")
 

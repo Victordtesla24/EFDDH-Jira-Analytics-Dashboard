@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import List
 
 import pandas as pd
 import streamlit as st
@@ -38,9 +39,9 @@ def validate_jira_data(df: pd.DataFrame) -> bool:
         return False
 
 
-def ensure_test_data():
+def ensure_test_data() -> bool:
     """Ensure test data file exists and is valid."""
-    data_path = Path("data/test-data.csv")
+    data_path: Path = Path("data/test-data.csv")
     if not data_path.exists():
         st.error(f"Data file not found: {data_path}")
         st.stop()
@@ -81,7 +82,7 @@ def validate_epic_data(df: pd.DataFrame) -> bool:
     return True
 
 
-def validate_input_data(data: pd.DataFrame, required_columns: list) -> bool:
+def validate_input_data(data: pd.DataFrame, required_columns: List[str]) -> bool:
     """Validate input data against required columns.
     Args:
         data: DataFrame to validate
