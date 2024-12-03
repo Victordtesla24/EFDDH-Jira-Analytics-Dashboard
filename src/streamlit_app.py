@@ -5,17 +5,8 @@ from src.components.visualizations import (show_charts, show_epic_progress,
 from src.config.settings import settings
 from src.data.data_loader import load_data, prepare_data
 
-# Page config
-st.set_page_config(
-    page_title=settings.app_title,
-    page_icon="📊",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
-
-# Enhanced ANZ styling with better UI elements
-st.markdown(
-    """
+# Custom CSS styling
+CUSTOM_CSS = """
     <style>
         .stApp {
             font-family: Arial, sans-serif;
@@ -66,9 +57,18 @@ st.markdown(
             background-color: #007DBA;
         }
     </style>
-""",
-    unsafe_allow_html=True,
+"""
+
+# Page config
+st.set_page_config(
+    page_title=settings.app_title,
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="expanded",
 )
+
+# Apply custom styling
+st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
 # Create tabs with enhanced styling
 tab1, tab2, tab3 = st.tabs(

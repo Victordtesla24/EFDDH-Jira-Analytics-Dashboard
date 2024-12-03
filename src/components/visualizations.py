@@ -2,9 +2,9 @@ import logging
 from typing import Callable, List
 
 import pandas as pd
-import plotly.express as px
+import plotly.express as px  # type: ignore
 import streamlit as st
-from plotly.graph_objects import Figure
+from plotly.graph_objects import Figure  # type: ignore
 
 from src.utils.formatting import get_anz_template
 
@@ -57,7 +57,7 @@ def show_epic_progress(data: pd.DataFrame) -> None:
         .reset_index()
     )
 
-    # Create new DataFrame with desired columns to avoid type issues
+    # Create new DataFrame with desired columns
     epic_data = pd.DataFrame(
         {
             "Epic Name": epic_data["Epic Name"],
@@ -68,7 +68,7 @@ def show_epic_progress(data: pd.DataFrame) -> None:
     epic_data["In Progress"] = epic_data["Total Points"] - epic_data["Completed"]
 
     # Create visualization
-    fig = px.bar(
+    fig: Figure = px.bar(
         epic_data,
         x="Epic Name",
         y=["Completed", "In Progress"],

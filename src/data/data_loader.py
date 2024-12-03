@@ -1,8 +1,8 @@
 import logging
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
-import pandas as pd
+import pandas as pd  # type: ignore
 import streamlit as st
 
 # Set pandas option to opt into future behavior
@@ -34,7 +34,13 @@ def load_data(file_path: Optional[Path] = None) -> Optional[pd.DataFrame]:
             return None
 
         # Check for required columns
-        required_cols = ["Created", "Resolved", "Priority", "Issue Type", "Sprint"]
+        required_cols: List[str] = [
+            "Created",
+            "Resolved",
+            "Priority",
+            "Issue Type",
+            "Sprint",
+        ]
         missing_cols = [col for col in required_cols if col not in df.columns]
         if missing_cols:
             error_msg = f"Missing required columns: {missing_cols}"

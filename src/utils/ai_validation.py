@@ -1,10 +1,10 @@
 import time
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import anthropic
-from plotly.graph_objects import Figure
+from plotly.graph_objects import Figure  # type: ignore
 
 from src.utils.logging import get_logger
 
@@ -22,8 +22,8 @@ class BatchPromptProcessor:
         self.chunk_size = chunk_size
         self.max_tokens = 1000
         self.client = anthropic.Anthropic()
-        self.last_call_time = 0
-        self.min_delay = 0.5
+        self.last_call_time = 0.0  # Changed to float
+        self.min_delay = 0.5  # Changed to float
 
     def process_chunks(self, prompt: str) -> List[str]:
         chunks = []
@@ -82,8 +82,8 @@ class BatchPromptProcessor:
 class AIValidator:
     def __init__(self) -> None:
         self.client = anthropic.Anthropic()
-        self.last_call_time = 0
-        self.min_delay = 1
+        self.last_call_time = 0.0  # Changed to float
+        self.min_delay = 1.0  # Changed to float
         self.max_tokens = 1000
 
     def _rate_limit_check(self) -> None:
