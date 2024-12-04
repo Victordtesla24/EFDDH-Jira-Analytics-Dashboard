@@ -1,45 +1,174 @@
-# Jira Analytics Dashboard
+# JIRA Analytics Dashboard
 
-A Streamlit application for visualizing and analyzing Jira data.
+A powerful analytics dashboard for visualizing and analyzing JIRA project data, with a focus on sprint metrics, team velocity, and issue tracking.
 
-## Setup
+## Features
 
-1. Create virtual environment:
+- 📊 **Sprint Analytics**
+  - Real-time sprint progress tracking
+  - Burndown charts and velocity metrics
+  - Issue status distribution
+  - Story point analysis
 
-   ```bash
-   python3 -m venv .venv
-   source .venv/bin/activate
-   ```
+- 📈 **Performance Metrics**
+  - Team velocity trends
+  - Completion rate analysis
+  - Sprint-over-sprint comparisons
+  - Issue type distribution
 
-2. Install dependencies:
+- 👥 **Team Capacity**
+  - Resource allocation visualization
+  - Workload distribution
+  - Sprint capacity planning
+  - Team member utilization
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+- 🔄 **Dynamic Sprint Selection**
+  - Flexible sprint comparison
+  - Historical data analysis
+  - Trend identification
+  - Performance benchmarking
 
-3. Set up pre-commit hooks (recommended):
+## Installation
 
-   ```bash
-   pre-commit install
-   ```
+1. Clone the repository:
 
-4. Run the application:
+```bash
+git clone https://github.com/yourusername/EFDDH-Jira-Analytics-Dashboard.git
+cd EFDDH-Jira-Analytics-Dashboard
+```
 
-   ```bash
-   streamlit run src/streamlit_app.py
-   ```
+1. Create and activate a virtual environment:
+
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+1. Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+1. Set up the configuration:
+
+```bash
+cp .streamlit/config.toml.example .streamlit/config.toml
+# Edit config.toml with your settings
+```
+
+## Usage
+
+1. Start the Streamlit app:
+
+```bash
+./run.sh
+```
+
+1. Open your browser and navigate to:
+
+```bash
+http://localhost:8501
+```
+
+1. Upload your JIRA CSV export file:
+
+```bash
+# Export your JIRA data as CSV
+# Use the file upload feature in the dashboard
+# View your analytics instantly
+```
 
 ## Development
 
-- Run tests: `pytest`
-- Format code: `black src/`
-- Check style: `flake8 src/`
-- Sort imports: `isort src/`
-- Type checking: `mypy src/`
-- Run all checks: `./verify_and_fix.sh`
+### Project Structure
 
-## Testing
+```plaintext
+.
+├── .streamlit/              # Streamlit configuration
+├── src/                     # Source code
+│   ├── components/          # Reusable UI components
+│   ├── pages/              # Dashboard pages
+│   ├── utils/              # Utility functions
+│   ├── data/               # Data handling
+│   ├── config/             # Configuration
+│   └── tests/              # Test suite
+├── logs/                    # Application logs
+└── docs/                    # Documentation
+```
 
-- Run unit tests: `pytest src/tests/`
-- Run integration tests: `pytest src/tests/integration/`
-- Generate coverage report: `pytest --cov=src`
+### Running Tests
+
+Run all tests:
+
+```bash
+pytest
+```
+
+Run tests with coverage:
+
+```bash
+pytest --cov=src --cov-report=html
+```
+
+### Code Quality
+
+Format code:
+
+```bash
+black src/
+isort src/
+```
+
+Run linters:
+
+```bash
+flake8 src/
+mypy src/
+```
+
+## Deployment
+
+1. Verify deployment readiness:
+
+```bash
+./verify_and_fix.sh
+```
+
+1. Deploy to Streamlit Cloud:
+   - Connect your GitHub repository to [share.streamlit.io](https://share.streamlit.io)
+   - Select the repository and branch
+   - Configure deployment settings
+   - Deploy
+
+## Contributing
+
+1. Fork the repository
+1. Create a feature branch
+1. Make your changes
+1. Run tests and linters
+1. Submit a pull request
+
+## Requirements
+
+- Python 3.8+
+- Streamlit 1.24.0+
+- Pandas 1.5.0+
+- Plotly 5.13.0+
+- Additional dependencies in requirements.txt
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Support
+
+1. Check the [Issues](https://github.com/yourusername/EFDDH-Jira-Analytics-Dashboard/issues) page
+1. Create a new issue with detailed information
+1. Contact the development team
+
+## Acknowledgments
+
+- JIRA API Documentation
+- Streamlit Community
+- Contributors and maintainers

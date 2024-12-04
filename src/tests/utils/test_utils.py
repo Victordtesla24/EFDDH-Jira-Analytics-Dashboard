@@ -1,12 +1,10 @@
 import logging
-from pathlib import Path
-
 import pytest
+from pathlib import Path
 
 from src.utils.caching import cache_data
 from src.utils.formatting import format_date
 from src.utils.logging import setup_logging
-
 
 @pytest.fixture(autouse=True)
 def setup_logs_directory():
@@ -18,7 +16,6 @@ def setup_logs_directory():
     for log_file in logs_dir.glob("app_*.log"):
         log_file.unlink()
 
-
 def test_cache_data():
     @cache_data(ttl=3600)
     def sample_function():
@@ -27,12 +24,10 @@ def test_cache_data():
     result = sample_function()
     assert result == "cached_value"
 
-
 def test_format_date():
     test_date = "2024-01-01"
     formatted = format_date(test_date)
     assert formatted == "01/01/2024"
-
 
 def test_setup_logging(setup_logs_directory):
     """Test logging setup."""

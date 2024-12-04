@@ -1,20 +1,33 @@
 import pandas as pd
+import pytest
 from plotly.graph_objects import Figure
+from unittest.mock import patch
 
-from src.components.charts import (create_bar_chart, create_interactive_charts,
-                                   create_pie_chart)
+from src.components.charts import (
+    create_bar_chart,
+    create_interactive_charts,
+    create_pie_chart,
+)
 
 
-def test_create_interactive_charts(mock_streamlit):
+@pytest.fixture
+def sample_data():
+    """Create sample data for testing."""
+    return pd.DataFrame({"Issue Type": ["Bug", "Story", "Bug", "Epic", "Story"]})
+
+
+@patch("src.components.charts.st")
+def test_create_interactive_charts(mock_st, sample_data):
     """Test interactive charts creation with sample data."""
-    # Create sample data
-    data = pd.DataFrame({"Issue Type": ["Bug", "Story", "Bug", "Epic", "Story"]})
+    create_interactive_charts(sample_data)
 
-    create_interactive_charts(data)
-    assert mock_streamlit["plotly_chart"].called
+    # Verify plotly_chart was called
+    assert mock_st.plotly_chart.called
+
     # Verify plotly_chart was called with a Figure object
-    call_args = mock_streamlit["plotly_chart"].call_args
+    call_args = mock_st.plotly_chart.call_args
     assert isinstance(call_args[0][0], Figure)
+
     # Verify container width parameter
     assert call_args[1]["use_container_width"] is True
 
@@ -94,13 +107,17 @@ def test_create_pie_chart_with_additional_params():
     assert fig.layout.title.text == title
 
 
-def test_create_interactive_charts_empty_data(mock_streamlit):
+@patch("src.components.charts.st")
+def test_create_interactive_charts_empty_data(mock_st):
     """Test interactive charts with empty dataframe."""
     empty_data = pd.DataFrame(columns=["Issue Type"])
     create_interactive_charts(empty_data)
-    assert mock_streamlit["warning"].called
-    warning_msg = "No data available for visualization"
-    assert mock_streamlit["warning"].call_args[0][0] == warning_msg
+
+    # Verify warning was shown
+    mock_st.warning.assert_called_once_with("No data available for visualization")
+
+    # Verify plotly_chart was not called
+    assert not mock_st.plotly_chart.called
 
 
 def test_create_bar_chart_single_item():
@@ -123,3 +140,23 @@ def test_create_pie_chart_single_item():
     fig = create_pie_chart(names, values, title)
     assert isinstance(fig, Figure)
     assert fig.layout.title.text == title
+
+
+def test_create_bar_chart_data_validation():
+    """Test bar chart with mismatched data lengths."""
+    x = ["A", "B"]
+    y = [1]
+    title = "Mismatched Data"
+
+    with pytest.raises(ValueError):
+        create_bar_chart(x, y, title)
+
+
+def test_create_pie_chart_data_validation():
+    """Test pie chart with mismatched data lengths."""
+    names = ["A", "B"]
+    values = [100]
+    title = "Mismatched Data"
+
+    with pytest.raises(ValueError):
+        create_pie_chart(names, values, title)

@@ -1,8 +1,6 @@
 from datetime import datetime
-from typing import Any, Union
-
-import plotly.graph_objects as go  # type: ignore
-
+from typing import Any, Dict, Union
+import plotly.graph_objects as go
 
 def format_date(date: Union[str, datetime]) -> str:
     """Format date consistently."""
@@ -14,16 +12,13 @@ def format_date(date: Union[str, datetime]) -> str:
             return date  # Return original string if parsing fails
     return date.strftime("%d/%m/%Y")
 
-
 def format_percentage(value: float) -> str:
     """Format value as percentage."""
     return f"{value:.2f}%"
 
-
 def format_days(value: float) -> str:
     """Format value as days."""
     return f"{value:.2f} days"
-
 
 def get_anz_template() -> dict[str, Any]:
     """Get ANZ chart template."""

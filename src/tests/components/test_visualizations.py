@@ -1,149 +1,189 @@
-from unittest.mock import patch
-
+from typing import Dict, List, Optional, Union, Any
+import pytest
 import pandas as pd
 import plotly.graph_objects as go
-import pytest
+from unittest.mock import MagicMock, patch
 
-from src.components.visualizations import (show_charts, show_epic_progress,
-                                           show_velocity_metrics)
+from src.components.visualizations import (
+    calculate_velocity_metrics,
+    show_analytics,
+    show_capacity_management,
+    show_charts,
+    show_epic_progress,
+    show_metrics_with_recovery,
+    show_velocity_metrics,
+    validate_data,
+)
 
 
-def test_show_charts(mock_streamlit):
-    """Test basic chart visualization."""
-    test_data = pd.DataFrame(
+@pytest.fixture
+def sample_data():
+    """Create sample data for testing."""
+    return pd.DataFrame(
         {
+            "Issue key": ["EFDDH-1", "EFDDH-2", "EFDDH-3", "EFDDH-4", "EFDDH-5"],
             "Created": pd.date_range(start="2024-01-01", periods=5),
-            "Status": ["Done"] * 5,
+            "Status": ["Done"] * 3 + ["In Progress"] * 2,
+            "Story Points": [5, 3, 8, 4, 2],
+            "Epic Name": ["Epic1", "Epic1", "Epic2", "Epic2", "Epic1"],
+            "Assignee": ["User1", "User2", "User1", "User2", "User1"],
         }
     )
 
-    show_charts(test_data)
-    assert mock_streamlit["plotly_chart"].called
-    call_args = mock_streamlit["plotly_chart"].call_args
-    assert isinstance(call_args[0][0], go.Figure)
-    assert call_args[1]["use_container_width"] is True
+
+def test_validate_data():
+    """Test data validation function."""
+    valid_df = pd.DataFrame({"col1": [1], "col2": [2]})
+    assert validate_data(valid_df) is True
+    assert validate_data(valid_df, ["col1"]) is True
+    assert validate_data(valid_df, ["col3"]) is False
+    assert validate_data(None) is False
+    assert validate_data(pd.DataFrame()) is False
 
 
-def test_show_charts_empty_data(mock_streamlit):
-    """Test chart visualization with empty data."""
-    empty_df = pd.DataFrame()
-    show_charts(empty_df)
-    assert mock_streamlit["error"].called
-    error_msg = mock_streamlit["error"].call_args[0][0]
-    assert error_msg == "No data available for visualization"
+@patch("src.components.visualizations.st")
+def test_show_charts(mock_st, sample_data):
+    """Test chart visualization."""
+    show_charts(sample_data)
+    assert mock_st.plotly_chart.called
+    fig = mock_st.plotly_chart.call_args[0][0]
+    assert isinstance(fig, go.Figure)
+    assert mock_st.plotly_chart.call_args[1]["use_container_width"] is True
 
 
-def test_show_epic_progress(mock_streamlit):
+@patch("src.components.visualizations.st")
+def test_show_charts_error_handling(mock_st):
+    """Test chart visualization error handling."""
+    show_charts(None)
+    mock_st.error.assert_called_once_with("No data available for visualization")
+
+    invalid_df = pd.DataFrame({"wrong_column": [1, 2]})
+    show_charts(invalid_df)
+    assert mock_st.error.call_count == 2
+
+
+@patch("src.components.visualizations.st")
+def test_show_epic_progress(mock_st, sample_data):
     """Test epic progress visualization."""
-    test_data = pd.DataFrame(
-        {
-            "Epic Name": ["Epic1", "Epic2"],
-            "Story Points": [5, 3],
-            "Status": ["Done", "In Progress"],
-        }
-    )
-
-    show_epic_progress(test_data)
-    assert mock_streamlit["plotly_chart"].called
-    call_args = mock_streamlit["plotly_chart"].call_args
-    assert isinstance(call_args[0][0], go.Figure)
-    assert call_args[1]["use_container_width"] is True
+    show_epic_progress(sample_data)
+    assert mock_st.plotly_chart.called
+    fig = mock_st.plotly_chart.call_args[0][0]
+    assert isinstance(fig, go.Figure)
 
 
-def test_show_epic_progress_empty_data(mock_streamlit):
-    """Test epic progress with empty data."""
-    empty_df = pd.DataFrame()
-    show_epic_progress(empty_df)
-    assert mock_streamlit["error"].called
-    msg = mock_streamlit["error"].call_args[0][0]
-    assert msg == "No data available for epic progress visualization"
+@patch("src.components.visualizations.st")
+def test_show_epic_progress_error_handling(mock_st):
+    """Test epic progress error handling."""
+    show_epic_progress(None)
+    mock_st.error.assert_called_once()
+
+    invalid_df = pd.DataFrame({"wrong_column": [1, 2]})
+    show_epic_progress(invalid_df)
+    assert mock_st.error.call_count == 2
 
 
-def test_show_epic_progress_missing_columns(mock_streamlit):
-    """Test epic progress with missing required columns."""
-    incomplete_df = pd.DataFrame({"Epic Name": ["Epic1"], "Status": ["Done"]})
-    show_epic_progress(incomplete_df)
-    assert mock_streamlit["error"].called
-    msg = mock_streamlit["error"].call_args[0][0]
-    assert msg == "Missing required columns for epic progress visualization"
-
-
-def test_show_velocity_metrics(mock_streamlit):
+@patch("src.components.visualizations.st")
+def test_show_velocity_metrics(mock_st, sample_data):
     """Test velocity metrics display."""
-    test_df = pd.DataFrame(
-        {
-            "Status": ["Done", "Done", "In Progress"],
-            "Story Points": [5, 3, 8],
-            "Created": pd.date_range(start="2024-01-01", periods=3),
-        }
+    mock_cols = [MagicMock(), MagicMock()]
+    mock_st.columns.return_value = mock_cols
+
+    show_velocity_metrics(sample_data)
+
+    assert mock_st.columns.called
+    assert mock_st.metric.call_count == 2
+
+    # Verify metrics values
+    metric_calls = mock_st.metric.call_args_list
+    velocity_call = next(
+        call for call in metric_calls if "Average Velocity" in call[0][0]
+    )
+    completed_call = next(
+        call for call in metric_calls if "Completed Stories" in call[0][0]
     )
 
-    show_velocity_metrics(test_df)
-    assert mock_streamlit["metric"].called
-
-    metric_calls = mock_streamlit["metric"].call_args_list
-    metrics_found = {"velocity": False, "completed": False}
-
-    for call in metric_calls:
-        args = call[0]
-        if "Average Velocity" in args[0]:
-            metrics_found["velocity"] = True
-            assert "4.0" in args[1]
-        elif "Completed Stories" in args[0]:
-            metrics_found["completed"] = True
-            assert args[1] == 2
-
-    assert all(metrics_found.values()), "Not all expected metrics were displayed"
+    assert "8.0" in velocity_call[0][1]  # 16 points / 2 weeks
+    assert completed_call[0][1] == 3
 
 
-def test_show_velocity_metrics_empty_data(mock_streamlit):
-    """Test velocity metrics with empty data."""
-    empty_df = pd.DataFrame()
-    show_velocity_metrics(empty_df)
-    assert mock_streamlit["error"].called
-    error_msg = mock_streamlit["error"].call_args[0][0]
-    assert error_msg == "No data available for velocity metrics"
+@patch("src.components.visualizations.st")
+def test_show_capacity_management(mock_st, sample_data):
+    """Test capacity management visualization."""
+    mock_cols = [MagicMock(), MagicMock(), MagicMock()]
+    mock_st.columns.return_value = mock_cols
+
+    show_capacity_management(sample_data)
+
+    assert mock_st.title.called
+    assert mock_st.columns.called
+    assert mock_st.plotly_chart.call_count >= 2  # Trend and workload charts
+
+    # Verify metrics
+    metric_calls = mock_st.metric.call_args_list
+    metrics = {call[0][0]: float(call[0][1].strip("0")) for call in metric_calls}
+
+    assert metrics["Total Story Points"] == 22
+    assert metrics["Completed Points"] == 16
+    assert metrics["In Progress Points"] == 6
 
 
-def test_show_velocity_metrics_no_completed_items(mock_streamlit):
-    """Test velocity metrics with no completed items."""
-    test_df = pd.DataFrame(
-        {
-            "Status": ["In Progress", "To Do"],
-            "Story Points": [5, 3],
-            "Created": pd.date_range(start="2024-01-01", periods=2),
-        }
-    )
+@patch("src.components.visualizations.st")
+def test_show_capacity_management_error_handling(mock_st):
+    """Test capacity management error handling."""
+    show_capacity_management(None)
+    mock_st.error.assert_called_once()
 
-    show_velocity_metrics(test_df)
-    assert mock_streamlit["warning"].called
-    warning_msg = mock_streamlit["warning"].call_args[0][0]
-    assert warning_msg == "No completed items found for velocity calculation"
+    invalid_df = pd.DataFrame({"wrong_column": [1, 2]})
+    show_capacity_management(invalid_df)
+    assert mock_st.error.call_count == 2
 
 
-def test_show_velocity_metrics_calculation(mock_streamlit):
-    """Test velocity metrics calculation accuracy."""
-    test_df = pd.DataFrame(
-        {
-            "Status": ["Done", "Done"],
-            "Story Points": [10, 20],
-            "Created": pd.date_range(start="2024-01-01", periods=2),
-        }
-    )
+def test_calculate_velocity_metrics(sample_data):
+    """Test velocity metrics calculation."""
+    metrics = calculate_velocity_metrics(sample_data)
+    assert metrics["velocity"] == 8.0  # (5 + 3 + 8) / 2 weeks
+    assert metrics["completed"] == 3
 
-    show_velocity_metrics(test_df)
-    assert mock_streamlit["metric"].called
+    # Test edge cases
+    assert calculate_velocity_metrics(pd.DataFrame()) == {
+        "velocity": 0.0,
+        "completed": 0,
+    }
+    assert calculate_velocity_metrics(None) == {"velocity": 0.0, "completed": 0}
 
-    metric_calls = mock_streamlit["metric"].call_args_list
-    metrics_found = {"velocity": False, "completed": False}
 
-    for call in metric_calls:
-        args = call[0]
-        if "Average Velocity" in args[0]:
-            metrics_found["velocity"] = True
-            assert "15.0" in args[1]
-        elif "Completed Stories" in args[0]:
-            metrics_found["completed"] = True
-            assert args[1] == 2
+@patch("src.components.visualizations.st")
+def test_show_metrics_with_recovery(mock_st, sample_data):
+    """Test metrics display with recovery."""
+    mock_st.columns.return_value = [MagicMock(), MagicMock()]
 
-    assert all(metrics_found.values()), "Not all expected metrics were displayed"
+    # Test successful case
+    show_metrics_with_recovery(sample_data)
+    assert not mock_st.error.called
+
+    # Test recovery case
+    with patch(
+        "src.components.visualizations.show_velocity_metrics",
+        side_effect=Exception("Test error"),
+    ):
+        show_metrics_with_recovery(sample_data)
+        assert mock_st.warning.called
+
+
+@patch("src.components.visualizations.st")
+def test_show_analytics(mock_st, sample_data):
+    """Test analytics dashboard display."""
+    mock_st.columns.return_value = [MagicMock(), MagicMock()]
+
+    show_analytics(sample_data)
+
+    assert mock_st.columns.called
+    assert mock_st.metric.call_count >= 2
+
+    # Test error handling
+    show_analytics(None)
+    mock_st.error.assert_called_with("No data available for analysis")
+
+    invalid_df = pd.DataFrame({"wrong_column": [1, 2]})
+    show_analytics(invalid_df)
+    assert mock_st.error.call_count == 2

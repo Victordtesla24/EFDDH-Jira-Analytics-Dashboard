@@ -1,173 +1,243 @@
+"""Visualization components for analytics."""
+from typing import Dict, List, Optional, Union, Any
 import logging
-from typing import Callable, List
-
 import pandas as pd
-import plotly.express as px  # type: ignore
+import plotly.express as px
 import streamlit as st
-from plotly.graph_objects import Figure  # type: ignore
-
-from src.utils.formatting import get_anz_template
+from plotly.graph_objects import Figure
 
 logger = logging.getLogger(__name__)
 
+def get_chart_layout():
+    """Get base chart layout settings."""
+    return {
+        "font": {"family": "Arial, sans-serif", "size": 12},
+        "showlegend": True,
+        "plot_bgcolor": "#FFFFFF",
+        "paper_bgcolor": "#FFFFFF",
+        "margin": dict(l=40, r=40, t=40, b=40),
+    }
+
+def validate_data(data: Optional[pd.DataFrame], required_cols: List[str] = None) -> bool:
+    """Validate DataFrame has required columns and is not empty."""
+    if data is None or data.empty:
+        return False
+    if required_cols and not all(col in data.columns for col in required_cols):
+        return False
+    return True
+
+def is_completed_status(status: str) -> bool:
+    """Check if a status represents completion."""
+    return status.lower() in ["done", "closed", "story done", "epic done"]
+
+def calculate_velocity_metrics(data: Optional[pd.DataFrame]) -> Dict[str, Union[float, int]]:
+    """Calculate velocity metrics from data."""
+    if not validate_data(data, ["Status", "Story Points"]):
+        return {"velocity": 0.0, "completed": 0}
+
+    try:
+        completed_data = data[data["Status"].apply(is_completed_status)]
+        total_points = completed_data["Story Points"].fillna(0).sum()
+        num_completed = len(completed_data)
+        
+        # Assuming 2-week sprints for velocity calculation
+        velocity = total_points / 2 if num_completed > 0 else 0.0
+        
+        return {
+            "velocity": velocity,
+            "completed": num_completed
+        }
+    except Exception as e:
+        logger.error(f"Error calculating velocity metrics: {str(e)}")
+        return {"velocity": 0.0, "completed": 0}
 
 def show_charts(data: pd.DataFrame) -> None:
     """Display charts for JIRA data analysis."""
-    if data.empty:
+    if not validate_data(data, ["Created"]):
         st.error("No data available for visualization")
         return
 
-    # Ensure Created column is datetime
-    data = data.copy()
-    data["Created"] = pd.to_datetime(data["Created"])
+    try:
+        # Create weekly trend chart
+        weekly_counts = (
+            data.groupby(pd.Grouper(key="Created", freq="W"))
+            .size()
+            .reset_index(name="count")
+        )
 
-    # Create weekly trend chart
-    weekly_counts = data.groupby(pd.Grouper(key="Created", freq="W")).size()
-    weekly_data = pd.DataFrame(
-        {"Created": weekly_counts.index, "count": weekly_counts.values}
-    )
+        fig = px.line(
+            weekly_counts,
+            x="Created",
+            y="count",
+            title="Weekly Issue Creation Trend",
+            template="plotly_white",
+        )
+        fig.update_layout(
+            **get_chart_layout(), xaxis_title="Date", yaxis_title="Number of Issues"
+        )
+        st.plotly_chart(fig, use_container_width=True)
 
-    fig: Figure = px.line(
-        weekly_data,
-        x="Created",
-        y="count",
-        title="Weekly Issue Creation Trend",
-        template=get_anz_template(),
-    )
-    st.plotly_chart(fig, use_container_width=True)
+        # Add Priority Distribution if available
+        if "Priority" in data.columns:
+            priority_counts = data["Priority"].value_counts()
+            fig = px.pie(
+                values=priority_counts.values,
+                names=priority_counts.index,
+                title="Issue Priority Distribution",
+                template="plotly_white",
+            )
+            fig.update_layout(**get_chart_layout())
+            st.plotly_chart(fig, use_container_width=True)
 
+        # Add Issue Type Distribution if available
+        if "Issue Type" in data.columns:
+            type_counts = data["Issue Type"].value_counts()
+            fig = px.bar(
+                x=type_counts.index,
+                y=type_counts.values,
+                title="Issue Type Distribution",
+                template="plotly_white",
+            )
+            fig.update_layout(
+                **get_chart_layout(), xaxis_title="Issue Type", yaxis_title="Count"
+            )
+            st.plotly_chart(fig, use_container_width=True)
+
+    except Exception as e:
+        logger.error(f"Error creating charts: {str(e)}")
+        st.error("Failed to create visualization")
 
 def show_epic_progress(data: pd.DataFrame) -> None:
     """Show epic progress visualization."""
-    if data.empty:
-        st.error("No data available for epic progress visualization")
+    if not validate_data(data, ["Epic Name", "Story Points", "Status"]):
+        st.error("No data available for epic progress")
         return
 
-    # Ensure required columns exist
-    required_cols: List[str] = ["Epic Name", "Story Points", "Status"]
-    if not all(col in data.columns for col in required_cols):
-        st.error("Missing required columns for epic progress visualization")
-        return
+    try:
+        # Calculate epic progress
+        data["Completed"] = data["Status"].apply(is_completed_status)
+        epic_data = (
+            data.groupby("Epic Name")
+            .agg({
+                "Story Points": "sum",
+                "Completed": lambda x: sum(x) * 1.0,  # Convert to float
+            })
+            .reset_index()
+        )
 
-    # Prepare data
-    status_agg: Callable[[pd.Series], int] = lambda x: (x == "Done").sum()
-    epic_data = (
-        data.groupby("Epic Name")
-        .agg({"Story Points": "sum", "Status": status_agg})
-        .reset_index()
-    )
+        # Filter out empty epics and null Epic Names
+        epic_data = epic_data[
+            (epic_data["Story Points"] > 0) & (epic_data["Epic Name"].notna())
+        ]
 
-    # Create new DataFrame with desired columns
-    epic_data = pd.DataFrame(
-        {
-            "Epic Name": epic_data["Epic Name"],
-            "Total Points": epic_data["Story Points"],
-            "Completed": epic_data["Status"],
-        }
-    )
-    epic_data["In Progress"] = epic_data["Total Points"] - epic_data["Completed"]
+        if not epic_data.empty:
+            epic_data["Progress"] = (
+                epic_data["Completed"] / epic_data["Story Points"] * 100
+            ).round(1)
 
-    # Create visualization
-    fig: Figure = px.bar(
-        epic_data,
-        x="Epic Name",
-        y=["Completed", "In Progress"],
-        title="Epic Progress Overview",
-        template=get_anz_template(),
-        barmode="stack",
-    )
-    st.plotly_chart(fig, use_container_width=True)
+            fig = px.bar(
+                epic_data,
+                x="Epic Name",
+                y="Progress",
+                title="Epic Progress (%)",
+                template="plotly_white",
+                text=epic_data["Progress"].apply(lambda x: f"{x:.1f}%"),
+            )
+            fig.update_layout(
+                **get_chart_layout(), xaxis_title="Epic", yaxis_title="Completion (%)"
+            )
+            fig.update_traces(textposition="outside")
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("No epic progress data available")
 
+    except Exception as e:
+        logger.error(f"Error creating epic progress: {str(e)}")
+        st.error("Failed to create epic progress visualization")
 
 def show_velocity_metrics(data: pd.DataFrame) -> None:
     """Show velocity metrics."""
-    if data.empty:
+    if not validate_data(data, ["Story Points", "Status"]):
         st.error("No data available for velocity metrics")
         return
 
-    # Clean data
-    metrics_data = data.copy()
-    metrics_data = metrics_data.dropna(subset=["Story Points", "Status"])
+    try:
+        metrics = calculate_velocity_metrics(data)
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Average Velocity", f"{metrics['velocity']:.1f} points/sprint")
+        with col2:
+            st.metric("Completed Stories", metrics['completed'])
 
-    # Calculate metrics only for completed items
-    completed = metrics_data[metrics_data["Status"] == "Done"]
-
-    if len(completed) == 0:
-        st.warning("No completed items found for velocity calculation")
-        return
-
-    # Calculate velocity (points per week)
-    velocity = completed["Story Points"].sum() / max(1, len(completed))
-
-    # Display metrics
-    cols = st.columns(2)
-    with cols[0]:
-        st.metric("Average Velocity", f"{velocity:.1f} points/week")
-    with cols[1]:
-        st.metric("Completed Stories", len(completed))
-
+    except Exception as e:
+        logger.error(f"Error showing velocity metrics: {str(e)}")
+        st.error("Failed to display velocity metrics")
 
 def show_capacity_management(data: pd.DataFrame) -> None:
     """Show capacity management visualization."""
-    if data is None or data.empty:
+    if not validate_data(data, ["Story Points", "Status", "Assignee"]):
         st.error("No data available for capacity management")
         return
 
-    st.title("Team Capacity Management")
+    try:
+        st.title("Team Capacity Management")
 
-    # Calculate team capacity metrics
-    total_story_points = data["Story Points"].fillna(0).sum()
-    completed_points = data[data["Status"] == "Done"]["Story Points"].fillna(0).sum()
-    in_progress_points = (
-        data[data["Status"] == "In Progress"]["Story Points"].fillna(0).sum()
-    )
+        # Calculate capacity metrics
+        data["Completed"] = data["Status"].apply(is_completed_status)
+        metrics = {
+            "Total Story Points": data["Story Points"].fillna(0).sum(),
+            "Completed Points": data[data["Completed"]]["Story Points"].fillna(0).sum(),
+            "In Progress Points": data[~data["Completed"]]["Story Points"]
+            .fillna(0)
+            .sum(),
+        }
 
-    # Display metrics
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("Total Story Points", f"{total_story_points:.0f}")
-    with col2:
-        st.metric("Completed Points", f"{completed_points:.0f}")
-    with col3:
-        st.metric("In Progress Points", f"{in_progress_points:.0f}")
+        # Display metrics
+        cols = st.columns(3)
+        for i, (label, value) in enumerate(metrics.items()):
+            with cols[i]:
+                st.metric(label, f"{value:.0f}")
 
-    # Create capacity trend visualization
-    st.subheader("Capacity Trend")
-    weekly_points = data.groupby(pd.Grouper(key="Created", freq="W"))[
-        "Story Points"
-    ].sum()
-    weekly_capacity = pd.DataFrame(
-        {"Created": weekly_points.index, "Story Points": weekly_points.values}
-    )
-
-    fig = px.line(
-        weekly_capacity,
-        x="Created",
-        y="Story Points",
-        title="Weekly Capacity Trend",
-        template=get_anz_template(),
-    )
-    st.plotly_chart(fig, use_container_width=True)
-
-    # Show team workload distribution
-    st.subheader("Team Workload Distribution")
-    if "Assignee" in data.columns:
-        assignee_load = (
-            data[data["Status"] != "Done"]
+        # Show team workload distribution
+        workload_data = (
+            data[~data["Completed"]]
             .groupby("Assignee")["Story Points"]
             .sum()
             .sort_values(ascending=False)
+            .reset_index()
         )
-        workload_data = pd.DataFrame(
-            {"Assignee": assignee_load.index, "Story Points": assignee_load.values}
-        )
-        fig = px.bar(
-            workload_data,
-            x="Assignee",
-            y="Story Points",
-            title="Current Team Workload",
-            template=get_anz_template(),
-        )
-        st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.info("Assignee information not available for workload distribution")
+
+        if not workload_data.empty:
+            fig = px.bar(
+                workload_data,
+                x="Assignee",
+                y="Story Points",
+                title="Current Team Workload",
+                template="plotly_white",
+                text=workload_data["Story Points"].round(1),
+            )
+            fig.update_layout(
+                **get_chart_layout(),
+                xaxis_title="Team Member",
+                yaxis_title="Story Points",
+            )
+            fig.update_traces(textposition="outside")
+            st.plotly_chart(fig, use_container_width=True)
+
+            # Add workload distribution pie chart
+            fig = px.pie(
+                workload_data,
+                values="Story Points",
+                names="Assignee",
+                title="Workload Distribution",
+                template="plotly_white",
+            )
+            fig.update_layout(**get_chart_layout())
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("No workload data available")
+
+    except Exception as e:
+        logger.error(f"Error in capacity management: {str(e)}")
+        st.error("Failed to display capacity management")

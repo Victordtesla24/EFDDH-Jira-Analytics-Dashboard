@@ -1,34 +1,96 @@
-import pandas as pd  # type: ignore
+"""Analytics page module."""
 import streamlit as st
+import pandas as pd
+import plotly.express as px
+import logging
 
-from src.components.visualizations import (show_charts, show_epic_progress,
-                                           show_velocity_metrics)
+from src.components.visualizations import (
+    show_charts,
+    show_velocity_metrics,
+    show_epic_progress,
+    show_capacity_management,
+)
 
+logger = logging.getLogger(__name__)
+
+def is_completed_status(status: str) -> bool:
+    """Check if a status represents completion."""
+    return status.lower() in ["done", "closed", "story done", "epic done"]
+
+def validate_analytics_data(data: pd.DataFrame) -> bool:
+    """Validate data for analytics page."""
+    if data is None or data.empty:
+        logger.warning("No data available for analysis")
+        return False
+
+    required_columns = ["Status"]
+    missing_columns = [col for col in required_columns if col not in data.columns]
+    if missing_columns:
+        logger.warning(f"Missing required columns: {missing_columns}")
+        return False
+
+    return True
 
 def show_analytics(data: pd.DataFrame) -> None:
-    """Show analytics page content."""
-    if data is None or data.empty:
+    """Display analytics dashboard."""
+    if not validate_analytics_data(data):
         st.error("No data available for analysis")
         return
 
-    # Check required columns
-    required_columns = ["Story Points", "Status", "Created"]
-    missing_columns = [col for col in required_columns if col not in data.columns]
+    try:
+        # Header metrics
+        col1, col2 = st.columns(2)
+        with col1:
+            total_issues = len(data)
+            st.metric("Total Issues", total_issues)
+            
+            completed_issues = len(data[data["Status"].apply(is_completed_status)])
+            st.metric("Completed Issues", completed_issues)
+            
+            # Story Points metrics if available
+            if "Story Points" in data.columns:
+                total_points = data["Story Points"].fillna(0).sum()
+                completed_points = data[
+                    data["Status"].apply(is_completed_status)
+                ]["Story Points"].fillna(0).sum()
+                
+                completion_rate = (completed_issues / total_issues * 100) if total_issues > 0 else 0
+                
+                st.metric(
+                    "Story Points",
+                    f"{total_points:.0f}",
+                    f"{completion_rate:.1f}% Complete" if total_points > 0 else "No points"
+                )
+            else:
+                logger.info("Story Points column not available")
 
-    if missing_columns:
-        error_msg = f"Missing required columns: {', '.join(missing_columns)}"
-        st.error(error_msg)
-        return
+        with col2:
+            try:
+                # Show visualizations
+                show_charts(data)
+            except Exception as e:
+                logger.error(f"Error showing charts: {str(e)}")
+                st.error("Failed to display charts")
 
-    # Clean data by removing null values
-    data = data.copy()
-    data = data.dropna(subset=required_columns)
+            try:
+                show_velocity_metrics(data)
+            except Exception as e:
+                logger.error(f"Error showing velocity metrics: {str(e)}")
+                st.error("Failed to display velocity metrics")
 
-    if len(data) == 0:
-        st.warning("No valid data points after cleaning")
-        return
+            try:
+                show_epic_progress(data)
+            except Exception as e:
+                logger.error(f"Error showing epic progress: {str(e)}")
+                st.error("Failed to display epic progress")
 
-    # Show visualizations with cleaned data
-    show_charts(data)
-    show_epic_progress(data)
-    show_velocity_metrics(data)
+        try:
+            # Show capacity management in full width
+            show_capacity_management(data)
+        except Exception as e:
+            logger.error(f"Error showing capacity management: {str(e)}")
+            st.error("Failed to display capacity management")
+
+    except Exception as e:
+        logger.error(f"Error displaying analytics: {str(e)}")
+        st.error("Error displaying analytics dashboard")

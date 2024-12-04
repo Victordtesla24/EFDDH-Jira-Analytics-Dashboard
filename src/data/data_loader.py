@@ -1,99 +1,136 @@
-import logging
+from typing import Dict, List, Optional, Union, Any
 from pathlib import Path
-from typing import List, Optional
-
-import pandas as pd  # type: ignore
+import logging
+import re
 import streamlit as st
-
-# Set pandas option to opt into future behavior
-pd.set_option("future.no_silent_downcasting", True)
+import pandas as pd
+from src.data.processors import process_jira_data
 
 logger = logging.getLogger(__name__)
 
-
-@st.cache_data(ttl=3600)  # Cache for 1 hour
-def load_data(file_path: Optional[Path] = None) -> Optional[pd.DataFrame]:
-    """Load and validate Jira data with improved caching and error handling."""
+@st.cache_data(show_spinner=False)
+def load_data(file_path: Optional[Path] = None) -> pd.DataFrame:
+    """Load data from CSV file with proper error handling and caching."""
     try:
         if file_path is None:
             file_path = Path("data/EFDDH-Jira-Data-Sprint21.csv")
 
         if not file_path.exists():
-            error_msg = f"Data file not found: {file_path}"
-            logger.error(error_msg)
-            st.error("Failed to load data: " + error_msg)
-            return None
+            logger.error(f"Data file not found: {file_path}")
+            st.error(f"Data file not found: {file_path}")
+            return pd.DataFrame()
 
+        logger.info(f"Loading data from {file_path}")
         df = pd.read_csv(file_path)
+        logger.info(f"Loaded {len(df)} rows")
 
-        # Check for empty dataset
+        # Basic validation of required columns
+        required_columns = ["Issue key", "Created", "Status"]
+        missing_columns = [col for col in required_columns if col not in df.columns]
+        if missing_columns:
+            logger.error(f"Missing required columns: {missing_columns}")
+            st.error(f"Missing required columns: {missing_columns}")
+            return pd.DataFrame()
+
         if df.empty:
-            error_msg = "Empty dataset loaded"
-            logger.error(error_msg)
-            st.error("Failed to load data: " + error_msg)
-            return None
+            logger.warning("Loaded DataFrame is empty")
+            st.error("No data found in file")
+            return pd.DataFrame()
 
-        # Check for required columns
-        required_cols: List[str] = [
-            "Created",
-            "Resolved",
-            "Priority",
-            "Issue Type",
-            "Sprint",
-        ]
-        missing_cols = [col for col in required_cols if col not in df.columns]
-        if missing_cols:
-            error_msg = f"Missing required columns: {missing_cols}"
-            logger.error(error_msg)
-            st.error("Failed to load data: " + error_msg)
-            return None
-
-        # Convert dates and handle invalid formats
-        try:
-            for col in ["Created", "Resolved"]:
-                if col in df.columns:
-                    df[col] = pd.to_datetime(df[col])
-                    if df[col].isna().all():
-                        error_msg = f"Invalid date format in column: {col}"
-                        logger.error(error_msg)
-                        st.error("Failed to load data: " + error_msg)
-                        return None
-        except (ValueError, TypeError) as e:
-            error_msg = f"Invalid date format: {str(e)}"
-            logger.error(error_msg)
-            st.error("Failed to load data: " + str(e))
-            return None
-
+        logger.info("Data loaded successfully")
         return df
 
     except Exception as e:
         logger.error(f"Error loading data: {str(e)}")
-        st.error("Failed to load data: " + str(e))
-        return None
+        st.error(f"Error loading data: {str(e)}")
+        return pd.DataFrame()
 
+@st.cache_data(show_spinner=False)
+def prepare_data(df: pd.DataFrame) -> pd.DataFrame:
+    """Prepare and clean the data for analysis."""
+    try:
+        if df.empty:
+            logger.warning("Empty DataFrame received")
+            return pd.DataFrame()
 
-def prepare_data(df: Optional[pd.DataFrame]) -> Optional[pd.DataFrame]:
-    """Prepare data for analysis."""
-    if df is None or df.empty:
-        return None
+        # Create a copy to avoid modifying the original
+        processed_df = df.copy()
 
-    df = df.copy()
+        logger.info("Starting data preparation")
 
-    # Handle date fields
-    if "Created" in df.columns:
-        df["Created"] = pd.to_datetime(df["Created"]).fillna(pd.Timestamp("2024-01-01"))
-        df["Created_Week"] = df["Created"].dt.isocalendar().week
-    if "Resolved" in df.columns:
-        df["Resolved"] = pd.to_datetime(df["Resolved"])
+        # Convert date columns with explicit format
+        date_columns = ["Created", "Updated", "Resolved", "Due Date"]
+        for col in date_columns:
+            if col in processed_df.columns:
+                logger.info(f"Converting {col} to datetime")
+                processed_df[col] = pd.to_datetime(processed_df[col], errors="coerce")
+                # Ensure datetime64 dtype even if all values are NaT
+                if not pd.api.types.is_datetime64_dtype(processed_df[col]):
+                    processed_df[col] = processed_df[col].astype('datetime64[ns]')
 
-    # Handle null values with specific defaults
-    # First fill null values, then infer objects without copy parameter
-    df["Story Points"] = df["Story Points"].fillna(0)
-    df["Story Points"] = df["Story Points"].infer_objects()
-    df["Epic Name"] = df["Epic Name"].fillna("No Epic")
-    df["Status"] = df["Status"].fillna("In Progress")
+        # Basic data cleaning - only drop rows with missing required fields
+        if "Issue key" in processed_df.columns and "Created" in processed_df.columns:
+            initial_rows = len(processed_df)
+            processed_df = processed_df.dropna(subset=["Issue key", "Created"])
+            dropped_rows = initial_rows - len(processed_df)
+            if dropped_rows > 0:
+                logger.info(
+                    f"Dropped {dropped_rows} rows with missing Issue key or Created date"
+                )
 
-    # Handle remaining null values using ffill and bfill
-    df = df.ffill().bfill()
+        # Ensure Story Points is numeric
+        story_points_col = next((col for col in processed_df.columns if col.lower() == "story points"), None)
+        if story_points_col:
+            logger.info("Converting Story Points to numeric")
+            processed_df["Story Points"] = pd.to_numeric(
+                processed_df[story_points_col], errors="coerce"
+            ).fillna(0)
 
-    return df
+        # Ensure Status has valid values and consistent casing
+        status_col = next((col for col in processed_df.columns if col.lower() == "status"), None)
+        if status_col:
+            logger.info("Cleaning Status values")
+            processed_df["Status"] = processed_df[status_col].fillna("In Progress")
+
+        # Ensure Priority is a string
+        priority_col = next((col for col in processed_df.columns if col.lower() == "priority"), None)
+        if priority_col:
+            logger.info("Cleaning Priority values")
+            processed_df["Priority"] = processed_df[priority_col].fillna("Medium").astype(str)
+
+        # Ensure Issue Type is a string
+        issue_type_col = next((col for col in processed_df.columns if col.lower() == "issue type"), None)
+        if issue_type_col:
+            logger.info("Cleaning Issue Type values")
+            processed_df["Issue Type"] = processed_df[issue_type_col].fillna("Story").astype(str)
+
+        # Clean Sprint column - handle multiple sprints per issue
+        sprint_cols = [col for col in processed_df.columns if col.lower() == "sprint"]
+        if sprint_cols:
+            logger.info("Cleaning Sprint values")
+            # Get the first non-empty sprint value for each row
+            sprints = processed_df[sprint_cols].fillna("")
+            processed_df["Sprint"] = sprints.apply(
+                lambda row: next((s for s in row if pd.notna(s) and str(s).strip()), "No Sprint"),
+                axis=1
+            )
+
+        # Handle Epic Link/Name
+        epic_link_col = next((col for col in processed_df.columns if col.lower() in ["epic link", "epic name"]), None)
+        if epic_link_col:
+            logger.info("Cleaning Epic Link values")
+            processed_df["Epic Link"] = processed_df[epic_link_col].fillna("No Epic")
+
+        # Process the data using the processor
+        processed_df = process_jira_data(processed_df)
+
+        # Log summary statistics
+        logger.info(f"Final dataset shape: {processed_df.shape}")
+        logger.info("Data preparation completed successfully")
+
+        return processed_df
+
+    except Exception as e:
+        logger.error(f"Error preparing data: {str(e)}")
+        st.error(f"Error preparing data: {str(e)}")
+        return pd.DataFrame()

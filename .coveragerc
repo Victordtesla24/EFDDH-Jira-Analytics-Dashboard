@@ -1,0 +1,61 @@
+[run]
+source = src
+omit =
+    */tests/*
+    */__init__.py
+    */migrations/*
+    */settings.py
+    */config.py
+    */conftest.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    pass
+    raise ImportError
+    except ImportError:
+    def main()
+    if TYPE_CHECKING:
+
+[html]
+directory = htmlcov
+title = JIRA Analytics Dashboard Coverage Report
+
+[xml]
+output = coverage.xml
+
+[json]
+output = coverage.json
+pretty_print = true
+
+[paths]
+source =
+    src/
+    */site-packages/
+
+[coverage:run]
+relative_files = True
+branch = True
+parallel = True
+concurrency = multiprocessing
+data_file = .coverage
+
+[coverage:html]
+show_contexts = True
+skip_covered = False
+skip_empty = True
+
+[coverage:xml]
+output = coverage.xml
+
+[coverage:json]
+output = coverage.json
+pretty_print = true
+
+[coverage:paths]
+source =
+    src/
+    */site-packages/

@@ -1,3 +1,6 @@
+"""Shared test fixtures."""
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Union, Any
 from unittest.mock import MagicMock
 
 import pandas as pd
@@ -5,48 +8,75 @@ import pytest
 
 
 @pytest.fixture
-def test_data():
-    """Create sample data for testing."""
+def mock_streamlit():
+    """Mock common Streamlit functions."""
+    class MockStreamlit:
+        def __init__(self):
+            self.markdown_calls = []
+            self.metric_calls = []
+            self.multiselect_calls = []
+            self.date_input_calls = []
+
+        def markdown(self, *args, **kwargs):
+            self.markdown_calls.append((args, kwargs))
+
+        def metric(self, *args, **kwargs):
+            self.metric_calls.append((args, kwargs))
+
+        def multiselect(self, *args, **kwargs):
+            self.multiselect_calls.append((args, kwargs))
+            return []
+
+        def date_input(self, *args, **kwargs):
+            self.date_input_calls.append((args, kwargs))
+            return datetime.now()
+
+    mock_st = MockStreamlit()
+    return mock_st
+
+
+@pytest.fixture
+def sample_sprint_data():
+    """Create sample sprint data for testing."""
+    start_date = datetime(2024, 1, 1)
+    dates = [start_date + timedelta(days=i) for i in range(14)]
+
     return pd.DataFrame(
         {
-            "Issue Type": ["Story", "Task", "Bug"],
-            "Priority": ["High", "Low", "Medium"],
-            "Status": ["Done", "Done", "In Progress"],
-            "Story Points": [3, 8, 5],
-            "Created": ["2024-01-02", "2024-01-03", "2024-01-04"],
-            "Epic Link": ["EPIC-2", "EPIC-1", "EPIC-3"],
-            "Epic Name": ["Epic 2", "Epic 1", "Epic 3"],
+            "Sprint": ["BP: EFDDH Sprint 21"] * 5,
+            "Status": ["Done", "In Progress", "Done", "To Do", "Done"],
+            "Story Points": [3, 5, 2, 1, 3],
+            "Created": [dates[0]] * 5,  # All created at sprint start
+            "Resolved": [
+                dates[3],
+                None,
+                dates[7],
+                None,
+                dates[10],
+            ],  # Some resolved during sprint
+            "Issue key": ["EFDDH-1", "EFDDH-2", "EFDDH-3", "EFDDH-4", "EFDDH-5"],
         }
     )
 
 
 @pytest.fixture
-def test_data_path(tmp_path):
-    """Create a temporary test data file."""
-    data_file = tmp_path / "test_data.csv"
-    test_data = pd.DataFrame(
-        {
-            "Issue Type": ["Story", "Task", "Bug"],
-            "Priority": ["High", "Medium", "Low"],
-            "Status": ["Done", "In Progress", "To Do"],
-        }
-    )
-    test_data.to_csv(data_file, index=False)
-    return data_file
+def mock_plotly_chart():
+    """Mock Plotly chart rendering."""
+    return MagicMock()
 
 
 @pytest.fixture
-def mock_streamlit():
-    """Mock Streamlit components."""
-    mock = MagicMock()
-    mock.title = MagicMock()
-    mock.header = MagicMock()
-    mock.plotly_chart = MagicMock()
-    mock.metric = MagicMock()
-    mock.error = MagicMock()
-    mock.warning = MagicMock()
-    mock.success = MagicMock()
-    mock.info = MagicMock()
-    mock.dataframe = MagicMock()
-    mock.columns = MagicMock(return_value=[MagicMock(), MagicMock(), MagicMock()])
-    return mock
+def mock_file_upload_context():
+    """Mock file upload context with Streamlit components."""
+    class MockUploadContext:
+        def __init__(self):
+            self.uploaded_file = None
+            self.markdown_calls = []
+
+        def set_uploaded_file(self, file):
+            self.uploaded_file = file
+
+        def markdown(self, *args, **kwargs):
+            self.markdown_calls.append((args, kwargs))
+
+    return MockUploadContext()

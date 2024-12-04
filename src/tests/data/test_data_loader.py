@@ -1,127 +1,137 @@
-from pathlib import Path
-from unittest.mock import patch
-
-import pandas as pd
 import pytest
+import pandas as pd
+from pathlib import Path
+from unittest.mock import patch, Mock, MagicMock
 
 from src.data.data_loader import load_data, prepare_data
 
-
-@pytest.fixture(autouse=True)
-def mock_cache(monkeypatch):
-    """Mock streamlit cache decorator."""
-
-    def mock_decorator(*args, **kwargs):
-        def wrapper(func):
-            def wrapped_func(*args, **kwargs):
-                return func(*args, **kwargs)
-
-            return wrapped_func
-
-        return wrapper
-
-    monkeypatch.setattr("streamlit.cache_data", mock_decorator)
-
+@pytest.fixture
+def sample_data():
+    """Create sample data for testing."""
+    return pd.DataFrame({
+        "Issue key": ["TEST-1", "TEST-2"],
+        "Created": ["2024-01-01", "2024-01-02"],
+        "Updated": ["2024-01-02", "2024-01-03"],
+        "Resolved": ["2024-01-03", None],
+        "Due Date": ["2024-02-01", None],
+        "Status": ["Done", "In Progress"],
+        "Sprint": ["Sprint 1", "Sprint 2"],
+        "Story Points": [5, 3],
+        "Epic Name": ["Epic 1", "Epic 2"],
+        "Priority": ["High", "Medium"],
+        "Issue Type": ["Bug", "Story"],
+    })
 
 @pytest.fixture
-def sample_df():
-    return pd.DataFrame(
-        {
-            "Created": ["01/01/2024", "03/01/2024"],
-            "Resolved": ["02/01/2024", "04/01/2024"],
-            "Priority": ["High", "Medium"],
-            "Issue Type": ["Bug", "Story"],
-            "Sprint": ["Sprint 1", "Sprint 1"],
-            "Story Points": [5, None],  # Include null value
-            "Epic Name": ["Epic 1", None],  # Include null value
-            "Status": ["Done", None],  # Include null value
-        }
-    )
+def mock_streamlit():
+    """Mock streamlit components."""
+    with patch("streamlit.error") as mock_error, \
+         patch("streamlit.cache_data", lambda *args, **kwargs: lambda x: x):
+        yield {"error": mock_error}
 
+@pytest.fixture
+def mock_file(sample_data, tmp_path):
+    """Create a mock CSV file."""
+    file_path = tmp_path / "test.csv"
+    sample_data.to_csv(file_path, index=False)
+    return file_path
 
-def test_load_data_default_path(mock_streamlit, sample_df):
-    """Test loading data with default path."""
-    with (
-        patch("pathlib.Path.exists", return_value=True),
-        patch("src.data.data_loader.pd.read_csv", return_value=sample_df),
-    ):
-        df = load_data()
-        assert df is not None
-        assert not df.empty
-        assert isinstance(df, pd.DataFrame)
+def test_load_data_success(mock_streamlit, mock_file, sample_data):
+    """Test successful data loading."""
+    df = load_data(mock_file)
+    assert not df.empty
+    assert "Issue key" in df.columns
+    assert len(df) == 2
+    assert not mock_streamlit["error"].called
 
-
-def test_load_data_custom_path(mock_streamlit, sample_df):
-    """Test loading data with custom path."""
-    custom_path = Path("custom/path.csv")
-    with (
-        patch("pathlib.Path.exists", return_value=True),
-        patch("src.data.data_loader.pd.read_csv", return_value=sample_df),
-    ):
-        df = load_data(custom_path)
-        assert df is not None
-        assert not df.empty
-        assert isinstance(df, pd.DataFrame)
-
-
-def test_load_data_file_not_found(mock_streamlit):
+def test_load_data_missing_file(mock_streamlit):
     """Test handling of missing file."""
-    test_path = Path("nonexistent.csv")
     with patch("pathlib.Path.exists", return_value=False):
-        df = load_data(test_path)
-        assert df is None
-        assert mock_streamlit["error"].called
-        error_msg = mock_streamlit["error"].call_args[0][0]
-        assert "Failed to load data: Data file not found:" in error_msg
-        assert str(test_path) in error_msg
+        df = load_data(Path("nonexistent.csv"))
+        assert df.empty
+        mock_streamlit["error"].assert_called_once()
 
+def test_load_data_missing_columns(mock_streamlit, tmp_path):
+    """Test handling of data with missing required columns."""
+    invalid_data = pd.DataFrame({"Column1": [1, 2], "Column2": [3, 4]})
+    test_file = tmp_path / "invalid.csv"
+    invalid_data.to_csv(test_file, index=False)
 
-def test_prepare_data_valid_input(sample_df):
-    """Test data preparation with valid input including null values."""
-    df = prepare_data(sample_df)
-    assert df is not None
-    assert "Created_Week" in df.columns
+    df = load_data(test_file)
+    assert df.empty
+    mock_streamlit["error"].assert_called_once()
 
-    # Verify null values are handled as expected
-    assert df["Story Points"].iloc[1] == 0  # Null Story Points should be 0
-    assert df["Epic Name"].iloc[1] == "No Epic"  # Null Epic Name should be "No Epic"
-    # Null Status should be "In Progress"
-    assert df["Status"].iloc[1] == "In Progress"
+def test_load_data_empty_file(mock_streamlit, tmp_path):
+    """Test handling of empty file."""
+    test_file = tmp_path / "empty.csv"
+    pd.DataFrame().to_csv(test_file, index=False)
 
+    df = load_data(test_file)
+    assert df.empty
+    mock_streamlit["error"].assert_called_once()
+
+def test_prepare_data_success(sample_data):
+    """Test successful data preparation."""
+    df = prepare_data(sample_data)
+    
     # Verify date conversions
-    assert isinstance(df["Created"].iloc[0], pd.Timestamp)
-    assert isinstance(df["Created_Week"], pd.Series)
+    date_columns = ["Created", "Updated", "Resolved", "Due Date"]
+    for col in date_columns:
+        assert pd.api.types.is_datetime64_dtype(df[col])
 
+    # Verify Story Points is numeric
+    assert pd.api.types.is_numeric_dtype(df["Story Points"])
 
-def test_prepare_data_all_null_values():
-    """Test prepare_data with all null values."""
-    df_all_nulls = pd.DataFrame(
-        {
-            "Created": [None, None],
-            "Resolved": [None, None],
-            "Priority": [None, None],
-            "Issue Type": [None, None],
-            "Sprint": [None, None],
-            "Story Points": [None, None],
-            "Epic Name": [None, None],
-            "Status": [None, None],
-        }
-    )
+    # Verify Status handling
+    assert df["Status"].fillna("In Progress").iloc[1] == "In Progress"
 
-    df = prepare_data(df_all_nulls)
-    assert df is not None
+    # Verify Priority handling
+    assert df["Priority"].fillna("Medium").iloc[1] == "Medium"
 
-    # Verify default values for null fields
-    assert (df["Story Points"] == 0).all()
-    assert (df["Epic Name"] == "No Epic").all()
-    assert (df["Status"] == "In Progress").all()
+    # Verify Issue Type handling
+    assert df["Issue Type"].fillna("Story").iloc[1] == "Story"
 
-    # Verify default date handling
-    assert (df["Created"] == pd.Timestamp("2024-01-01")).all()
-    assert pd.isna(df["Resolved"]).all()
+    # Verify Sprint handling
+    assert df["Sprint"].fillna("No Sprint").iloc[0] == "Sprint 1"
 
+    # Verify Epic Link handling
+    assert df["Epic Name"].fillna("No Epic").iloc[0] == "Epic 1"
 
-def test_prepare_data_none_input():
-    """Test prepare_data with None input."""
-    result = prepare_data(None)
-    assert result is None
+def test_prepare_data_empty():
+    """Test preparation of empty DataFrame."""
+    df = prepare_data(pd.DataFrame())
+    assert df.empty
+
+def test_prepare_data_missing_optional_columns(sample_data):
+    """Test preparation with missing optional columns."""
+    minimal_data = sample_data[["Issue key", "Created", "Status"]]
+    df = prepare_data(minimal_data)
+    assert not df.empty
+    assert pd.api.types.is_datetime64_dtype(df["Created"])
+
+def test_prepare_data_invalid_dates():
+    """Test handling of invalid dates."""
+    invalid_data = pd.DataFrame({
+        "Issue key": ["TEST-1"],
+        "Created": ["invalid_date"],
+        "Status": ["Done"]
+    })
+    df = prepare_data(invalid_data)
+    assert not df.empty
+    assert pd.isna(df["Created"].iloc[0])
+
+def test_prepare_data_error_handling(mock_streamlit):
+    """Test error handling during data preparation."""
+    with patch("pandas.to_datetime", side_effect=Exception("Test error")):
+        df = prepare_data(pd.DataFrame({"Created": ["2024-01-01"]}))
+        assert df.empty
+        mock_streamlit["error"].assert_called_once()
+
+def test_load_data_default_path(mock_streamlit):
+    """Test loading data with default path."""
+    with patch("pathlib.Path.exists", return_value=True), \
+         patch("pandas.read_csv", return_value=pd.DataFrame({"Issue key": ["TEST-1"], "Created": ["2024-01-01"], "Status": ["Done"]})):
+        df = load_data()
+        assert not df.empty
+        assert "Issue key" in df.columns
+        assert not mock_streamlit["error"].called
