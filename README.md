@@ -127,27 +127,45 @@ flake8 src/
 mypy src/
 ```
 
-## Deployment
+## Deployment to Streamlit Cloud
 
-1. Verify deployment readiness:
+1. Fork and clone the repository
 
-```bash
-./verify_and_fix.sh
-```
+2. Set up the following secrets in Streamlit Cloud:
+   - `JIRA_SERVER`: Your JIRA server URL
+   - `JIRA_USERNAME`: Your JIRA username
+   - `JIRA_API_TOKEN`: Your JIRA API token
 
-1. Deploy to Streamlit Cloud:
+3. Deploy to Streamlit Cloud:
    - Connect your GitHub repository to [share.streamlit.io](https://share.streamlit.io)
    - Select the repository and branch
-   - Configure deployment settings
+   - Set the main file path to: `src/streamlit_app.py`
+   - Add the required secrets in the Streamlit Cloud dashboard
    - Deploy
+
+### Environment Variables
+
+Required environment variables (set in Streamlit Cloud):
+
+- `JIRA_SERVER`: JIRA server URL
+- `JIRA_USERNAME`: JIRA username
+- `JIRA_API_TOKEN`: JIRA API token
+- `DEBUG`: Set to "True" for debug mode (optional)
+
+### Local Development
+
+1. Copy `.env.example` to `.env`
+2. Fill in your JIRA credentials
+3. Run `./verify_and_fix.sh` to verify setup
+4. Start the app with `streamlit run src/streamlit_app.py`
 
 ## Contributing
 
 1. Fork the repository
-1. Create a feature branch
-1. Make your changes
-1. Run tests and linters
-1. Submit a pull request
+2. Create a feature branch
+3. Make your changes
+4. Run tests and linters
+5. Submit a pull request
 
 ## Requirements
 
@@ -164,8 +182,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Support
 
 1. Check the [Issues](https://github.com/yourusername/EFDDH-Jira-Analytics-Dashboard/issues) page
-1. Create a new issue with detailed information
-1. Contact the development team
+2. Create a new issue with detailed information
+3. Contact the development team
 
 ## Acknowledgments
 

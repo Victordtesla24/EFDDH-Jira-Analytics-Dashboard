@@ -1,19 +1,17 @@
-from typing import Dict, List, Optional, Union, Any
-import pytest
-import pandas as pd
-import plotly.graph_objects as go
+from typing import Any, Dict, List, Optional, Union
 from unittest.mock import MagicMock, patch
 
-from src.components.visualizations import (
-    calculate_velocity_metrics,
-    show_analytics,
-    show_capacity_management,
-    show_charts,
-    show_epic_progress,
-    show_metrics_with_recovery,
-    show_velocity_metrics,
-    validate_data,
-)
+import pandas as pd
+import plotly.graph_objects as go
+import pytest
+
+from src.components.visualizations import (calculate_velocity_metrics,
+                                           show_analytics,
+                                           show_capacity_management,
+                                           show_charts, show_epic_progress,
+                                           show_metrics_with_recovery,
+                                           show_velocity_metrics,
+                                           validate_data)
 
 
 @pytest.fixture

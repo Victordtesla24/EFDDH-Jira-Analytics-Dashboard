@@ -1,17 +1,12 @@
-import pytest
 from datetime import date
 from unittest.mock import MagicMock, patch
-import pandas as pd
 
-from src.streamlit_app import (
-    filter_data,
-    initialize_app,
-    load_dashboard_data,
-    run_app,
-    show_agile_process,
-    show_filters,
-    show_handbook
-)
+import pandas as pd
+import pytest
+
+from src.streamlit_app import (filter_data, initialize_app,
+                               load_dashboard_data, run_app,
+                               show_agile_process, show_filters, show_handbook)
 
 
 class MockSidebar:
@@ -81,8 +76,9 @@ def test_initialize_app(mock_streamlit):
 
 def test_load_dashboard_data(mock_streamlit, sample_data):
     """Test dashboard data loading."""
-    with patch("src.streamlit_app.load_data", return_value=sample_data), \
-         patch("src.streamlit_app.prepare_data", return_value=sample_data):
+    with patch("src.streamlit_app.load_data", return_value=sample_data), patch(
+        "src.streamlit_app.prepare_data", return_value=sample_data
+    ):
 
         # Test successful load
         result = load_dashboard_data()
@@ -100,7 +96,9 @@ def test_load_dashboard_data(mock_streamlit, sample_data):
         with patch("src.streamlit_app.prepare_data", return_value=pd.DataFrame()):
             result = load_dashboard_data()
             assert result is None
-            mock_streamlit.error.assert_called_with("Failed to prepare data for analysis")
+            mock_streamlit.error.assert_called_with(
+                "Failed to prepare data for analysis"
+            )
 
 
 def test_show_filters(mock_streamlit, sample_data):
@@ -185,13 +183,19 @@ def test_run_app_success(mock_streamlit, sample_data):
     mock_streamlit.columns.return_value = mock_cols
 
     # Setup all mocks
-    with patch("src.streamlit_app.load_dashboard_data", return_value=sample_data), \
-         patch("src.streamlit_app.show_filters", return_value=filters), \
-         patch("src.streamlit_app.filter_data", return_value=sample_data), \
-         patch("src.components.visualizations.show_charts") as mock_charts, \
-         patch("src.components.visualizations.show_velocity_metrics") as mock_velocity, \
-         patch("src.components.visualizations.show_epic_progress") as mock_epic, \
-         patch("src.components.visualizations.show_capacity_management") as mock_capacity:
+    with patch(
+        "src.streamlit_app.load_dashboard_data", return_value=sample_data
+    ), patch("src.streamlit_app.show_filters", return_value=filters), patch(
+        "src.streamlit_app.filter_data", return_value=sample_data
+    ), patch(
+        "src.components.visualizations.show_charts"
+    ) as mock_charts, patch(
+        "src.components.visualizations.show_velocity_metrics"
+    ) as mock_velocity, patch(
+        "src.components.visualizations.show_epic_progress"
+    ) as mock_epic, patch(
+        "src.components.visualizations.show_capacity_management"
+    ) as mock_capacity:
 
         # Run app
         run_app()
@@ -227,7 +231,9 @@ def test_run_app_error_handling(mock_streamlit):
         assert mock_streamlit.stop.called
 
     # Test unexpected error
-    with patch("src.streamlit_app.load_dashboard_data", side_effect=Exception("Test error")):
+    with patch(
+        "src.streamlit_app.load_dashboard_data", side_effect=Exception("Test error")
+    ):
         run_app()
         mock_streamlit.error.assert_called_with("An error occurred: Test error")
         assert mock_streamlit.stop.call_count == 2
@@ -250,8 +256,12 @@ def test_run_app_empty_filtered_data(mock_streamlit, sample_data):
     mock_tabs = [MockTab(), MockTab(), MockTab()]
     mock_streamlit.tabs.return_value = mock_tabs
 
-    with patch("src.streamlit_app.load_dashboard_data", return_value=sample_data), \
-         patch("src.streamlit_app.show_filters", return_value=filters), \
-         patch("src.streamlit_app.filter_data", return_value=pd.DataFrame()):
+    with patch(
+        "src.streamlit_app.load_dashboard_data", return_value=sample_data
+    ), patch("src.streamlit_app.show_filters", return_value=filters), patch(
+        "src.streamlit_app.filter_data", return_value=pd.DataFrame()
+    ):
         run_app()
-        mock_streamlit.warning.assert_called_with("No data matches the selected filters")
+        mock_streamlit.warning.assert_called_with(
+            "No data matches the selected filters"
+        )

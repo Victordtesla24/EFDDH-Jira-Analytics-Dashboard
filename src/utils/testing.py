@@ -1,6 +1,8 @@
-from typing import Dict, List, Optional, Union, Any
 from contextlib import contextmanager
+from typing import Any, Dict, List, Optional, Union
+
 import streamlit as st
+
 
 @contextmanager
 def capture_streamlit_output():

@@ -149,6 +149,38 @@ verify_documentation() {
     return 0
 }
 
+# Function to verify Streamlit deployment requirements
+verify_streamlit_deployment() {
+    print_status "Verifying Streamlit deployment requirements..."
+    
+    # Check .streamlit directory
+    if [ ! -d ".streamlit" ]; then
+        print_warning "Creating .streamlit directory..."
+        mkdir .streamlit
+    fi
+    
+    # Check config.toml
+    if [ ! -f ".streamlit/config.toml" ]; then
+        print_error ".streamlit/config.toml is missing"
+        return 1
+    fi
+    
+    # Check sample data
+    if [ ! -f "data/sample.csv" ]; then
+        print_error "data/sample.csv is missing"
+        return 1
+    fi
+    
+    # Verify secrets handling
+    if ! grep -q "st.secrets" src/config/settings.py; then
+        print_warning "Secrets handling not implemented in settings.py"
+        return 1
+    fi
+    
+    print_status "✓ Streamlit deployment requirements verified"
+    return 0
+}
+
 # Main function
 main() {
     print_status "Starting deployment verification..."
@@ -174,6 +206,7 @@ main() {
     verify_dependencies || verification_failed=true
     verify_streamlit_config || verification_failed=true
     verify_documentation || verification_failed=true
+    verify_streamlit_deployment || verification_failed=true
     
     if [ "$verification_failed" = true ]; then
         print_error "Some verifications failed"

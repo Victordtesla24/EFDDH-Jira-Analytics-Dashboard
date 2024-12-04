@@ -1,8 +1,9 @@
 """Capacity management page for the JIRA dashboard."""
+
 import streamlit as st
 
-from src.data.data_loader import load_data, prepare_data
 from src.components.visualizations import show_capacity_management
+from src.data.data_loader import load_data, prepare_data
 
 # Page configuration
 st.set_page_config(

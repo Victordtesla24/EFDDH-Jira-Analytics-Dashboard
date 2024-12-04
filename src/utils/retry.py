@@ -4,6 +4,7 @@ from typing import Any, Callable, TypeVar
 
 T = TypeVar("T")
 
+
 def retry(max_attempts: int = 3, delay: float = 1.0):
     """Retry decorator with exponential backoff."""
 

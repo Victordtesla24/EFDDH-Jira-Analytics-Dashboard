@@ -1,6 +1,7 @@
 """Shared test fixtures."""
+
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Union, Any
+from typing import Any, Dict, List, Optional, Union
 from unittest.mock import MagicMock
 
 import pandas as pd
@@ -10,6 +11,7 @@ import pytest
 @pytest.fixture
 def mock_streamlit():
     """Mock common Streamlit functions."""
+
     class MockStreamlit:
         def __init__(self):
             self.markdown_calls = []
@@ -68,6 +70,7 @@ def mock_plotly_chart():
 @pytest.fixture
 def mock_file_upload_context():
     """Mock file upload context with Streamlit components."""
+
     class MockUploadContext:
         def __init__(self):
             self.uploaded_file = None

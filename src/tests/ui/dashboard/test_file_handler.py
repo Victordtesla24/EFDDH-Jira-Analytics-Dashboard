@@ -1,4 +1,5 @@
 """Tests for file upload handling."""
+
 import io
 from datetime import datetime
 
@@ -6,7 +7,8 @@ import pandas as pd
 import pytest
 import streamlit as st
 
-from src.ui.dashboard.file_handler import handle_file_upload, validate_csv_structure
+from src.ui.dashboard.file_handler import (handle_file_upload,
+                                           validate_csv_structure)
 
 
 @pytest.fixture
@@ -61,6 +63,7 @@ def test_validate_csv_structure():
 @pytest.mark.dashboard
 def test_handle_file_upload_valid_file(mock_csv_file, monkeypatch):
     """Test file upload handling with valid CSV file."""
+
     def mock_file_uploader(*args, **kwargs):
         return mock_csv_file
 
@@ -89,6 +92,7 @@ def test_handle_file_upload_valid_file(mock_csv_file, monkeypatch):
 @pytest.mark.dashboard
 def test_handle_file_upload_empty_file(mock_empty_csv, monkeypatch):
     """Test file upload handling with empty CSV file."""
+
     def mock_file_uploader(*args, **kwargs):
         return mock_empty_csv
 
@@ -106,6 +110,7 @@ def test_handle_file_upload_empty_file(mock_empty_csv, monkeypatch):
 @pytest.mark.dashboard
 def test_handle_file_upload_invalid_file(mock_invalid_csv, monkeypatch):
     """Test file upload handling with invalid CSV file."""
+
     def mock_file_uploader(*args, **kwargs):
         return mock_invalid_csv
 

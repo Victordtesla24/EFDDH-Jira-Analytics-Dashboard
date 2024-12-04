@@ -1,11 +1,13 @@
-import pytest
+from unittest.mock import MagicMock, patch
+
 import pandas as pd
 import plotly.graph_objects as go
+import pytest
 import streamlit as st
-from unittest.mock import MagicMock, patch
 
 from src.data.data_loader import prepare_data
 from src.pages.analytics import show_analytics
+
 
 @pytest.fixture
 def test_data():
@@ -24,6 +26,7 @@ def test_data():
     )
     return df
 
+
 @pytest.fixture
 def mock_streamlit(mocker):
     """Mock Streamlit components."""
@@ -41,10 +44,7 @@ def mock_streamlit(mocker):
         "error": mocker.patch("streamlit.error"),
         "info": mocker.patch("streamlit.info"),
         "warning": mocker.patch("streamlit.warning"),
-        "columns": mocker.patch(
-            "streamlit.columns",
-            return_value=col_mocks
-        ),
+        "columns": mocker.patch("streamlit.columns", return_value=col_mocks),
     }
 
     # Patch st.spinner context manager
@@ -55,38 +55,49 @@ def mock_streamlit(mocker):
 
     return mocked
 
+
 @pytest.fixture
 def mock_visualizations(mocker):
     """Mock visualization components."""
     return {
         "show_charts": mocker.patch("src.components.visualizations.show_charts"),
-        "show_velocity_metrics": mocker.patch("src.components.visualizations.show_velocity_metrics"),
-        "show_epic_progress": mocker.patch("src.components.visualizations.show_epic_progress"),
-        "show_capacity_management": mocker.patch("src.components.visualizations.show_capacity_management"),
+        "show_velocity_metrics": mocker.patch(
+            "src.components.visualizations.show_velocity_metrics"
+        ),
+        "show_epic_progress": mocker.patch(
+            "src.components.visualizations.show_epic_progress"
+        ),
+        "show_capacity_management": mocker.patch(
+            "src.components.visualizations.show_capacity_management"
+        ),
     }
+
 
 def test_analytics_integration(mock_streamlit, mock_visualizations, test_data):
     """Test analytics page with real data."""
+
     # Configure visualization mocks to create charts
     def mock_show_charts(data):
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=[1, 2, 3], y=[1, 2, 3]))
         st.plotly_chart(fig)
-    
+
     mock_visualizations["show_charts"].side_effect = mock_show_charts
 
     def mock_show_epic_progress(data):
         fig = go.Figure()
         fig.add_trace(go.Bar(x=["Epic 1", "Epic 2"], y=[50, 75]))
         st.plotly_chart(fig)
-    
+
     mock_visualizations["show_epic_progress"].side_effect = mock_show_epic_progress
 
     # Show analytics with properly formatted data
     show_analytics(test_data)
 
     # Verify charts were created
-    assert mock_streamlit["plotly_chart"].call_count >= 2, "Expected at least 2 charts to be created"
+    assert (
+        mock_streamlit["plotly_chart"].call_count >= 2
+    ), "Expected at least 2 charts to be created"
 
     # Verify metrics were displayed
     assert mock_streamlit["metric"].call_count > 0, "No metrics were displayed"
@@ -96,13 +107,21 @@ def test_analytics_integration(mock_streamlit, mock_visualizations, test_data):
 
     # Verify specific metrics
     metric_calls = mock_streamlit["metric"].call_args_list
-    metric_labels = [call.kwargs.get('label', '') for call in metric_calls]
-    
+    metric_labels = [call.kwargs.get("label", "") for call in metric_calls]
+
     # Check for required metrics
-    assert any('Total Issues' in label for label in metric_labels), "Total Issues metric missing"
-    assert any('Completed Issues' in label for label in metric_labels), "Completed Issues metric missing"
+    assert any(
+        "Total Issues" in label for label in metric_labels
+    ), "Total Issues metric missing"
+    assert any(
+        "Completed Issues" in label for label in metric_labels
+    ), "Completed Issues metric missing"
 
     # Verify visualization components were called
     assert mock_visualizations["show_charts"].called, "show_charts was not called"
-    assert mock_visualizations["show_epic_progress"].called, "show_epic_progress was not called"
-    assert mock_visualizations["show_velocity_metrics"].called, "show_velocity_metrics was not called"
+    assert mock_visualizations[
+        "show_epic_progress"
+    ].called, "show_epic_progress was not called"
+    assert mock_visualizations[
+        "show_velocity_metrics"
+    ].called, "show_velocity_metrics was not called"

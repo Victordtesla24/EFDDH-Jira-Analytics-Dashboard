@@ -1,6 +1,8 @@
 import os
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Union, Any
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
+
 
 @dataclass
 class ChartSettings:
@@ -14,6 +16,7 @@ class ChartSettings:
     background_color: str = "#FFFFFF"
     text_color: str = "#1E1E1E"
 
+
 @dataclass
 class AppSettings:
     business_hours_per_day: float = 8.0
@@ -23,13 +26,39 @@ class AppSettings:
     charts: ChartSettings = field(default_factory=ChartSettings)
     app_title: str = "ANZ Jira Analytics Dashboard"
 
+
 settings = AppSettings()
 
-# Construct data path using multiple os.path.dirname calls for readability
-current_dir = os.path.dirname(__file__)
-parent_dir = os.path.dirname(current_dir)
-root_dir = os.path.dirname(parent_dir)
-DATA_PATH = os.path.join(root_dir, "data")
+# Base directory
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
+# Data paths
+DEFAULT_DATA_PATH = BASE_DIR / "data" / "sample.csv"
+DATA_PATH = os.getenv("JIRA_DATA_PATH", str(DEFAULT_DATA_PATH))
+
+
+# Streamlit secrets handling
+def get_jira_config():
+    """Get JIRA configuration from environment or streamlit secrets."""
+    try:
+        import streamlit as st
+
+        return {
+            "server": st.secrets.get("JIRA_SERVER", ""),
+            "username": st.secrets.get("JIRA_USERNAME", ""),
+            "api_token": st.secrets.get("JIRA_API_TOKEN", ""),
+        }
+    except Exception:
+        return {
+            "server": os.getenv("JIRA_SERVER", ""),
+            "username": os.getenv("JIRA_USERNAME", ""),
+            "api_token": os.getenv("JIRA_API_TOKEN", ""),
+        }
+
+
+# Application settings
+APP_NAME = "JIRA Analytics Dashboard"
+DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
 # Add to existing settings
 VELOCITY_SETTINGS = {

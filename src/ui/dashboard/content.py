@@ -1,22 +1,20 @@
 """Dashboard content module."""
-from typing import Dict, List, Optional, Union, Any
 
-import streamlit as st
+from typing import Any, Dict, List, Optional, Union
+
 import pandas as pd
+import streamlit as st
 
-from src.ui.dashboard.issue_analysis import (
-    create_daily_created_trend,
-    create_issue_types_chart,
-    create_priority_distribution,
-    create_story_points_distribution,
-)
+from src.ui.dashboard.issue_analysis import (create_daily_created_trend,
+                                             create_issue_types_chart,
+                                             create_priority_distribution,
+                                             create_story_points_distribution)
 from src.ui.dashboard.metrics import get_sprint_metrics
-from src.ui.dashboard.sprint_progress import (
-    create_burndown_chart,
-    create_status_distribution,
-    create_velocity_chart,
-)
-from src.ui.dashboard.sprint_selector import get_available_sprints, get_sprint_data
+from src.ui.dashboard.sprint_progress import (create_burndown_chart,
+                                              create_status_distribution,
+                                              create_velocity_chart)
+from src.ui.dashboard.sprint_selector import (get_available_sprints,
+                                              get_sprint_data)
 
 
 def show_dashboard_content(data: pd.DataFrame) -> None:
@@ -28,9 +26,9 @@ def show_dashboard_content(data: pd.DataFrame) -> None:
     with col1:
         available_sprints = get_available_sprints(data)
         current_sprint = st.selectbox(
-            "Select Current Sprint", 
-            options=available_sprints, 
-            index=0 if available_sprints else None
+            "Select Current Sprint",
+            options=available_sprints,
+            index=0 if available_sprints else None,
         )
 
     with col2:

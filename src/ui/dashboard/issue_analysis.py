@@ -1,5 +1,6 @@
 """Issue analysis visualization functionality."""
-from typing import Dict, List, Optional, Union, Any
+
+from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
 import plotly.graph_objects as go

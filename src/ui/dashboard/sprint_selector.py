@@ -1,5 +1,6 @@
 """Sprint selection functionality."""
-from typing import Dict, List, Optional, Union, Any
+
+from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
 
@@ -11,9 +12,11 @@ def get_available_sprints(data: pd.DataFrame) -> List[str]:
 
     # Get unique sprints and sort by sprint number
     sprints_df = data[["Sprint", "Sprint Number"]].drop_duplicates()
-    sprints_df = sprints_df[sprints_df["Sprint"].str.contains("BP: EFDDH Sprint", na=False)]
+    sprints_df = sprints_df[
+        sprints_df["Sprint"].str.contains("BP: EFDDH Sprint", na=False)
+    ]
     sprints_df = sprints_df.sort_values("Sprint Number", ascending=False)
-    
+
     return sprints_df["Sprint"].tolist()
 
 

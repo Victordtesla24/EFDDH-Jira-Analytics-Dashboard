@@ -2,6 +2,7 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
+
 def setup_logging() -> logging.Logger:
     """Set up logging configuration."""
     # Create logs directory if it doesn't exist
@@ -33,6 +34,7 @@ def setup_logging() -> logging.Logger:
     logger.addHandler(console_handler)
 
     return logger
+
 
 def get_logger(name: str) -> logging.Logger:
     """Get a logger instance for the given name."""

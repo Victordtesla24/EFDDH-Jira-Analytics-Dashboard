@@ -1,8 +1,9 @@
-import json
 import functools
+import json
 from typing import Any, Callable, Dict, TypeVar
 
 T = TypeVar("T")
+
 
 def cache_data(ttl: int = 3600) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """Cache function results with TTL."""

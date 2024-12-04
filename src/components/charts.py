@@ -1,8 +1,9 @@
+from typing import Any, Dict, List, Optional, Union
+
 import pandas as pd
 import plotly.express as px
 import streamlit as st
 from plotly.graph_objects import Figure
-from typing import Any, Dict, List, Optional, Union
 
 from src.config.settings import settings
 from src.utils.formatting import get_anz_template

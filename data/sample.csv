@@ -1,0 +1,4 @@
+key,summary,status,created,resolved,priority,issue_type,sprint
+PROJ-1,Sample Task 1,Done,2024-01-01,2024-01-05,High,Task,Sprint 1
+PROJ-2,Sample Bug 1,In Progress,2024-01-02,,Medium,Bug,Sprint 1
+PROJ-3,Sample Story 1,To Do,2024-01-03,,Low,Story,Sprint 2 

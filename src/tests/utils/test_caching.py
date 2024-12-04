@@ -1,6 +1,9 @@
-import pytest
 from unittest.mock import Mock
+
+import pytest
+
 from src.utils.caching import cache_data
+
 
 def test_basic_caching():
     mock_func = Mock(return_value="test_result")
@@ -16,6 +19,7 @@ def test_basic_caching():
     assert result2 == "test_result"
     assert mock_func.call_count == 1
 
+
 def test_different_arguments():
     mock_func = Mock(side_effect=lambda x: f"result_{x}")
     cached_func = cache_data()(mock_func)
@@ -27,6 +31,7 @@ def test_different_arguments():
     assert result1 == "result_arg1"
     assert result2 == "result_arg2"
     assert mock_func.call_count == 2
+
 
 def test_complex_arguments():
     mock_func = Mock(return_value="test_result")
@@ -48,6 +53,7 @@ def test_complex_arguments():
     assert result1 == result2
     assert mock_func.call_count == 1
 
+
 def test_cache_key_generation():
     results = []
 
@@ -68,6 +74,7 @@ def test_cache_key_generation():
     assert result3 != result1
     assert len(results) == 2
 
+
 def test_preserve_function_metadata():
     @cache_data(ttl=60)
     def test_function(x: int, y: str = "default") -> str:
@@ -78,6 +85,7 @@ def test_preserve_function_metadata():
     assert test_function.__doc__ == "Test function docstring."
     assert test_function.__annotations__ == {"x": int, "y": str, "return": str}
 
+
 def test_ttl_parameter():
     # While TTL isn't implemented in current version,
     # test that it accepts the parameter
@@ -86,6 +94,7 @@ def test_ttl_parameter():
 
     result = cached_func("arg")
     assert result == "test_result"
+
 
 def test_exception_handling():
     error_msg = "Test error"
@@ -102,6 +111,7 @@ def test_exception_handling():
 
     assert mock_func.call_count == 2
 
+
 def test_cache_isolation():
     @cache_data()
     def func1(x):
@@ -117,6 +127,7 @@ def test_cache_isolation():
 
     assert result1 == "func1_test"
     assert result2 == "func2_test"
+
 
 def test_mutable_arguments():
     calls = []
@@ -139,6 +150,7 @@ def test_mutable_arguments():
     assert result3 == result4 == 2  # Same dict arg uses cache
     assert len(calls) == 2  # Only two actual calls made
 
+
 def test_none_arguments():
     mock_func = Mock(return_value="test_result")
     cached_func = cache_data()(mock_func)
@@ -149,6 +161,7 @@ def test_none_arguments():
 
     assert result1 == result2
     assert mock_func.call_count == 1
+
 
 def test_empty_arguments():
     mock_func = Mock(return_value="test_result")

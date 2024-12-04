@@ -1,7 +1,8 @@
 import logging
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
+
 
 class MetricsMonitor:
     def __init__(self):

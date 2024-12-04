@@ -1,13 +1,11 @@
+from unittest.mock import patch
+
 import pandas as pd
 import pytest
 from plotly.graph_objects import Figure
-from unittest.mock import patch
 
-from src.components.charts import (
-    create_bar_chart,
-    create_interactive_charts,
-    create_pie_chart,
-)
+from src.components.charts import (create_bar_chart, create_interactive_charts,
+                                   create_pie_chart)
 
 
 @pytest.fixture

@@ -1,7 +1,9 @@
 """Analytics page for the JIRA dashboard."""
-import streamlit as st
-from pathlib import Path
+
 import logging
+from pathlib import Path
+
+import streamlit as st
 
 from src.data.data_loader import load_data, prepare_data
 from src.pages.analytics import show_analytics
@@ -21,7 +23,7 @@ try:
         # Load and prepare data
         data_path = Path("data/EFDDH-Jira-Data-Sprint21.csv")
         raw_data = load_data(data_path)
-        
+
         if raw_data is None or raw_data.empty:
             logger.error("Failed to load data from CSV file")
             st.error("Failed to load data from CSV file")

@@ -1,10 +1,12 @@
-import os
 import logging
-import pytest
+import os
 from datetime import datetime
 from unittest.mock import MagicMock, call, patch
 
+import pytest
+
 from src.utils.logging_config import setup_logging
+
 
 def test_setup_logging(tmp_path):
     with patch("src.utils.logging_config.os.path.exists", return_value=False), patch(
@@ -32,6 +34,7 @@ def test_setup_logging(tmp_path):
             assert len(config_args["handlers"]) == 2
             assert isinstance(logger, logging.Logger)
 
+
 def test_existing_log_directory():
     with patch("src.utils.logging_config.os.path.exists", return_value=True), patch(
         "src.utils.logging_config.os.makedirs"
@@ -43,6 +46,7 @@ def test_existing_log_directory():
         setup_logging()
         mock_makedirs.assert_not_called()
 
+
 def test_directory_creation_error():
     with patch("src.utils.logging_config.os.path.exists", return_value=False), patch(
         "src.utils.logging_config.os.makedirs", side_effect=PermissionError
@@ -52,12 +56,14 @@ def test_directory_creation_error():
         with pytest.raises(PermissionError):
             setup_logging()
 
+
 def test_file_handler_error():
     with patch("src.utils.logging_config.os.path.exists", return_value=True), patch(
         "logging.FileHandler", side_effect=PermissionError
     ), patch("logging.StreamHandler"), patch("logging.basicConfig"):
         with pytest.raises(PermissionError):
             setup_logging()
+
 
 def test_module_specific_log_levels():
     mock_loggers = {}
@@ -83,6 +89,7 @@ def test_module_specific_log_levels():
             assert mock_loggers[module].setLevel.called
             assert mock_loggers[module].setLevel.call_args == call(logging.WARNING)
 
+
 def test_log_file_naming():
     with patch("src.utils.logging_config.os.path.exists", return_value=True), patch(
         "logging.FileHandler"
@@ -99,6 +106,7 @@ def test_log_file_naming():
             mock_file_handler.assert_called_once()
             assert mock_file_handler.call_args[0][0] == expected_log_file
 
+
 def test_handler_configuration():
     with patch("src.utils.logging_config.os.path.exists", return_value=True), patch(
         "logging.FileHandler"
@@ -113,6 +121,7 @@ def test_handler_configuration():
         assert mock_stream_handler.called
         config_args = mock_basic_config.call_args[1]
         assert len(config_args["handlers"]) == 2
+
 
 def test_logging_format_validation():
     with patch("src.utils.logging_config.os.path.exists", return_value=True), patch(
@@ -135,6 +144,7 @@ def test_logging_format_validation():
         for component in required_components:
             assert component in log_format
 
+
 def test_stream_handler_error():
     with patch("src.utils.logging_config.os.path.exists", return_value=True), patch(
         "logging.FileHandler"
@@ -145,6 +155,7 @@ def test_stream_handler_error():
     ):
         with pytest.raises(Exception, match="Stream handler error"):
             setup_logging()
+
 
 def test_multiple_calls():
     with patch("src.utils.logging_config.os.path.exists", return_value=True), patch(
@@ -159,6 +170,7 @@ def test_multiple_calls():
         assert mock_file_handler.call_count == 2
         # But should return the same logger instance
         assert logger1.name == logger2.name
+
 
 def test_custom_log_levels():
     mock_loggers = {}
@@ -180,7 +192,10 @@ def test_custom_log_levels():
             with patch("logging.basicConfig") as mock_basic_config:
                 setup_logging()
                 config_args = mock_basic_config.call_args[1]
-                assert config_args["level"] == logging.INFO  # Default level should be INFO
+                assert (
+                    config_args["level"] == logging.INFO
+                )  # Default level should be INFO
+
 
 def test_timestamp_microseconds():
     with patch("src.utils.logging_config.os.path.exists", return_value=True), patch(

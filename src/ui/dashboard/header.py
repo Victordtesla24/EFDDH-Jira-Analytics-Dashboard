@@ -1,6 +1,7 @@
 """Dashboard header component."""
+
 from datetime import datetime
-from typing import Dict, List, Optional, Union, Any
+from typing import Any, Dict, List, Optional, Union
 
 import streamlit as st
 

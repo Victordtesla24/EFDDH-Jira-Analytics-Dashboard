@@ -1,8 +1,10 @@
-import pytest
-import pandas as pd
-from pathlib import Path
 import importlib.util
+from pathlib import Path
 from unittest.mock import patch
+
+import pandas as pd
+import pytest
+
 
 @pytest.fixture
 def mock_streamlit():
@@ -10,6 +12,7 @@ def mock_streamlit():
         "streamlit.stop"
     ), patch("streamlit.spinner"):
         yield
+
 
 @pytest.fixture
 def sample_data():
@@ -23,6 +26,7 @@ def sample_data():
         }
     )
 
+
 def import_capacity_page():
     """Helper function to import the capacity page module."""
     spec = importlib.util.spec_from_file_location(
@@ -32,12 +36,14 @@ def import_capacity_page():
     spec.loader.exec_module(module)
     return module
 
+
 def test_page_configuration(mock_streamlit):
     with patch("streamlit.set_page_config") as mock_config:
         import_capacity_page()
         mock_config.assert_called_once_with(
             page_title="Capacity Management", page_icon="👥"
         )
+
 
 def test_data_load_failure(mock_streamlit):
     with patch("src.data.data_loader.load_data", return_value=None) as mock_load, patch(
@@ -47,6 +53,7 @@ def test_data_load_failure(mock_streamlit):
 
         mock_error.assert_called_once_with("Failed to load data from CSV file")
         mock_stop.assert_called_once()
+
 
 def test_data_preparation_failure(mock_streamlit, sample_data):
     with patch(
@@ -62,6 +69,7 @@ def test_data_preparation_failure(mock_streamlit, sample_data):
 
         mock_error.assert_called_once_with("Failed to prepare data for analysis")
         mock_stop.assert_called_once()
+
 
 def test_successful_data_flow(mock_streamlit, sample_data):
     with patch(
@@ -79,6 +87,7 @@ def test_successful_data_flow(mock_streamlit, sample_data):
         mock_prepare.assert_called_once_with(sample_data)
         mock_show.assert_called_once_with(sample_data)
 
+
 def test_error_handling_chain(mock_streamlit):
     with patch("src.data.data_loader.load_data", return_value=None) as mock_load, patch(
         "src.data.data_loader.prepare_data"
@@ -91,6 +100,7 @@ def test_error_handling_chain(mock_streamlit):
         mock_error.assert_called_once_with("Failed to load data from CSV file")
         mock_stop.assert_called_once()
 
+
 def test_spinner_usage(mock_streamlit, sample_data):
     with patch("src.data.data_loader.load_data", return_value=sample_data), patch(
         "src.data.data_loader.prepare_data", return_value=sample_data
@@ -100,6 +110,7 @@ def test_spinner_usage(mock_streamlit, sample_data):
         import_capacity_page()
 
         mock_spinner.assert_called_once_with("Loading capacity management dashboard...")
+
 
 def test_exception_handling(mock_streamlit):
     error_msg = "Test error"

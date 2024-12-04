@@ -1,5 +1,6 @@
 """Dashboard constants and shared utilities."""
-from typing import Dict, List, Optional, Union, Any
+
+from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
 
@@ -37,6 +38,8 @@ def create_metric_card(
     """
 
 
-def filter_sprint_data(data: pd.DataFrame, sprint_name: str = "BP: EFDDH Sprint 21") -> pd.DataFrame:
+def filter_sprint_data(
+    data: pd.DataFrame, sprint_name: str = "BP: EFDDH Sprint 21"
+) -> pd.DataFrame:
     """Filter data for specific sprint."""
     return data[data["Sprint"].str.contains(sprint_name, na=False)]

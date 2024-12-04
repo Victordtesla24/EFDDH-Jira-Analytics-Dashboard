@@ -1,6 +1,7 @@
-from typing import Dict, List, Optional, Union, Any
-import pytest
+from typing import Any, Dict, List, Optional, Union
 from unittest.mock import patch
+
+import pytest
 
 
 def test_matplotlib_import_success():
@@ -14,7 +15,9 @@ def test_matplotlib_import_failure():
         with pytest.raises(SystemExit) as exc_info:
             with patch("builtins.print") as mock_print:
                 import importlib
+
                 import src.config.config
+
                 importlib.reload(src.config.config)
 
         assert exc_info.value.code == 1

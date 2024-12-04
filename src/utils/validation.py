@@ -1,14 +1,15 @@
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Union
+from typing import Any, Dict, List, Optional, Union
+
 import pandas as pd
 import streamlit as st
 
 logger = logging.getLogger(__name__)
 
+
 def validate_data(
-    data: Optional[pd.DataFrame],
-    required_cols: Optional[List[str]] = None
+    data: Optional[pd.DataFrame], required_cols: Optional[List[str]] = None
 ) -> bool:
     """
     Validate DataFrame has required columns and is not empty.
@@ -39,6 +40,7 @@ def validate_data(
         logger.error(f"Error validating data: {str(e)}")
         return False
 
+
 def validate_jira_data(data: pd.DataFrame) -> bool:
     """Validate Jira data format and content."""
     required_columns = [
@@ -49,7 +51,7 @@ def validate_jira_data(data: pd.DataFrame) -> bool:
         "Status",
         "Epic Name",
     ]
-    
+
     if not validate_input_data(data, required_columns):
         return False
 
@@ -67,12 +69,13 @@ def validate_jira_data(data: pd.DataFrame) -> bool:
 
     return True
 
+
 def validate_velocity_data(data: pd.DataFrame) -> bool:
     """Validate velocity data format and content."""
     required_columns = ["Sprint", "Story Points", "Status"]
     if not validate_input_data(data, required_columns):
         return False
-    
+
     # Check if Story Points are numeric
     try:
         pd.to_numeric(data["Story Points"])
@@ -80,6 +83,7 @@ def validate_velocity_data(data: pd.DataFrame) -> bool:
     except (ValueError, TypeError):
         logger.warning("Data validation failed: Story Points must be numeric")
         return False
+
 
 def validate_epic_data(data: pd.DataFrame) -> bool:
     """Validate epic data format and content."""
@@ -94,6 +98,7 @@ def validate_epic_data(data: pd.DataFrame) -> bool:
 
     return True
 
+
 def validate_input_data(data: pd.DataFrame, required_columns: List[str]) -> bool:
     """Validate input data against required columns."""
     if data is None or data.empty:
@@ -102,43 +107,47 @@ def validate_input_data(data: pd.DataFrame, required_columns: List[str]) -> bool
 
     missing_columns = [col for col in required_columns if col not in data.columns]
     if missing_columns:
-        logger.warning(f"Data validation failed: Missing required columns {missing_columns}")
+        logger.warning(
+            f"Data validation failed: Missing required columns {missing_columns}"
+        )
         return False
 
     return True
+
 
 def validate_data_types(metrics: Dict[str, Any]) -> bool:
     """Validate metric data types."""
     if not isinstance(metrics, dict):
         logger.warning("Metrics validation failed: Input is not a dictionary")
         return False
-    
+
     required_keys = ["velocity", "completed"]
     if not all(key in metrics for key in required_keys):
         logger.warning("Metrics validation failed: Missing required keys")
         return False
-    
+
     return (
-        isinstance(metrics["velocity"], (int, float)) and
-        isinstance(metrics["completed"], int) and
-        metrics["velocity"] is not None and
-        metrics["completed"] is not None
+        isinstance(metrics["velocity"], (int, float))
+        and isinstance(metrics["completed"], int)
+        and metrics["velocity"] is not None
+        and metrics["completed"] is not None
     )
+
 
 def validate_calculations(metrics: Dict[str, Any]) -> bool:
     """Validate metric calculations."""
     if not isinstance(metrics, dict):
         logger.warning("Calculations validation failed: Input is not a dictionary")
         return False
-    
+
     required_keys = ["velocity", "completed"]
     if not all(key in metrics for key in required_keys):
         logger.warning("Calculations validation failed: Missing required keys")
         return False
-    
+
     velocity = metrics["velocity"]
     completed = metrics["completed"]
-    
+
     # Check for valid ranges
     if not (isinstance(velocity, (int, float)) and isinstance(completed, int)):
         logger.warning("Calculations validation failed: Invalid data types")
@@ -150,40 +159,43 @@ def validate_calculations(metrics: Dict[str, Any]) -> bool:
 
     return True
 
+
 def validate_display_format(metrics: Dict[str, Any]) -> bool:
     """Validate metric display format."""
     if not isinstance(metrics, dict):
         logger.warning("Display format validation failed: Input is not a dictionary")
         return False
-    
+
     required_keys = ["velocity", "completed"]
     if not all(key in metrics for key in required_keys):
         logger.warning("Display format validation failed: Missing required keys")
         return False
-    
+
     return (
-        isinstance(metrics["velocity"], (int, float)) and
-        isinstance(metrics["completed"], int) and
-        metrics["velocity"] is not None and
-        metrics["completed"] is not None
+        isinstance(metrics["velocity"], (int, float))
+        and isinstance(metrics["completed"], int)
+        and metrics["velocity"] is not None
+        and metrics["completed"] is not None
     )
+
 
 def validate_metric_output(metrics: Dict[str, Any]) -> bool:
     """Validate complete metric output."""
     return (
-        validate_data_types(metrics) and
-        validate_calculations(metrics) and
-        validate_display_format(metrics)
+        validate_data_types(metrics)
+        and validate_calculations(metrics)
+        and validate_display_format(metrics)
     )
+
 
 def ensure_test_data() -> None:
     """Ensure test data file exists and is valid."""
     test_file = Path("data/EFDDH-Jira-Data-Sprint21.csv")
-    
+
     if not test_file.exists():
         st.error("Test data file not found")
         st.stop()
-    
+
     try:
         data = pd.read_csv(test_file)
         if not validate_jira_data(data):

@@ -1,7 +1,9 @@
-from typing import Dict, Any
-import pandas as pd
-import numpy as np
 import re
+from typing import Any, Dict
+
+import numpy as np
+import pandas as pd
+
 
 class JiraDataProcessor:
     """Process and transform Jira data for visualization."""
@@ -12,11 +14,7 @@ class JiraDataProcessor:
     def get_sprint_metrics(self) -> Dict[str, Any]:
         """Calculate sprint-level metrics."""
         if self.df.empty:
-            return {
-                "total_issues": 0,
-                "completion_rate": 0.0,
-                "avg_cycle_time": np.nan
-            }
+            return {"total_issues": 0, "completion_rate": 0.0, "avg_cycle_time": np.nan}
 
         # Ensure Resolved column exists
         if "Resolved" not in self.df.columns:
@@ -25,7 +23,9 @@ class JiraDataProcessor:
         # Calculate completion rate
         resolved_count = self.df["Resolved"].notna().sum()
         total_count = len(self.df)
-        completion_rate = (resolved_count / total_count * 100) if total_count > 0 else 0.0
+        completion_rate = (
+            (resolved_count / total_count * 100) if total_count > 0 else 0.0
+        )
 
         # Calculate cycle time - ensure NaN when no resolved issues
         if resolved_count == 0:
@@ -35,10 +35,9 @@ class JiraDataProcessor:
             if not any(resolved_mask):
                 avg_cycle_time = np.nan
             else:
-                cycle_times = (
-                    pd.to_datetime(self.df.loc[resolved_mask, "Resolved"]) - 
-                    pd.to_datetime(self.df.loc[resolved_mask, "Created"])
-                )
+                cycle_times = pd.to_datetime(
+                    self.df.loc[resolved_mask, "Resolved"]
+                ) - pd.to_datetime(self.df.loc[resolved_mask, "Created"])
                 avg_cycle_time = cycle_times.dt.days.mean()
 
         return {
@@ -47,16 +46,30 @@ class JiraDataProcessor:
             "avg_cycle_time": avg_cycle_time,
         }
 
+
 def is_completed_status(status: str) -> bool:
     """Check if a status represents completion."""
-    return str(status).lower() in ["done", "closed", "story done", "epic done", "resolved", "complete", "completed"]
+    return str(status).lower() in [
+        "done",
+        "closed",
+        "story done",
+        "epic done",
+        "resolved",
+        "complete",
+        "completed",
+    ]
+
 
 def extract_sprint_number(sprint_str: str) -> int:
     """Extract sprint number from sprint string."""
     try:
-        if pd.isna(sprint_str) or not str(sprint_str).strip() or sprint_str == "No Sprint":
+        if (
+            pd.isna(sprint_str)
+            or not str(sprint_str).strip()
+            or sprint_str == "No Sprint"
+        ):
             return -1  # Use -1 for no sprint to sort them last
-        match = re.search(r'Sprint\s*(\d+)', str(sprint_str))
+        match = re.search(r"Sprint\s*(\d+)", str(sprint_str))
         if match:
             try:
                 return int(match.group(1))
@@ -65,6 +78,7 @@ def extract_sprint_number(sprint_str: str) -> int:
         return -1
     except Exception:
         return -1
+
 
 def process_jira_data(df: pd.DataFrame) -> pd.DataFrame:
     """Process Jira data for analysis."""
@@ -80,7 +94,7 @@ def process_jira_data(df: pd.DataFrame) -> pd.DataFrame:
             processed_df[col] = pd.to_datetime(processed_df[col], errors="coerce")
             # Ensure datetime64 dtype even if all values are NaT
             if not pd.api.types.is_datetime64_dtype(processed_df[col]):
-                processed_df[col] = processed_df[col].astype('datetime64[ns]')
+                processed_df[col] = processed_df[col].astype("datetime64[ns]")
 
     # Calculate resolution time if Created column exists
     if "Created" in processed_df.columns:
@@ -112,33 +126,35 @@ def process_jira_data(df: pd.DataFrame) -> pd.DataFrame:
     # Add status categories with exact mapping
     if "Status" in processed_df.columns:
         processed_df["Status Category"] = (
-            processed_df["Status"]
-            .str.strip()
-            .map(status_map)
-            .fillna("Other")
+            processed_df["Status"].str.strip().map(status_map).fillna("Other")
         )
-        
+
         # Add completed flag based on status
         processed_df["Completed"] = processed_df["Status"].apply(is_completed_status)
 
     # Convert Story Points to numeric, replacing NaN with 0
     if "Story Points" in processed_df.columns:
-        processed_df["Story Points"] = pd.to_numeric(processed_df["Story Points"], errors="coerce").fillna(0)
+        processed_df["Story Points"] = pd.to_numeric(
+            processed_df["Story Points"], errors="coerce"
+        ).fillna(0)
 
     # Process Sprint column if it exists
     if "Sprint" in processed_df.columns:
         # Ensure Sprint is string type and handle empty values
         processed_df["Sprint"] = processed_df["Sprint"].fillna("No Sprint").astype(str)
-        
+
         # Clean sprint values - take first sprint if multiple
         processed_df["Sprint"] = processed_df["Sprint"].apply(
             lambda x: x.split(",")[0].strip() if "," in x else x.strip()
         )
-        
+
         # Extract sprint numbers for sorting
-        processed_df["Sprint Number"] = processed_df["Sprint"].apply(extract_sprint_number)
+        processed_df["Sprint Number"] = processed_df["Sprint"].apply(
+            extract_sprint_number
+        )
 
     return processed_df
+
 
 def process_sprint_data(sprint_data: pd.DataFrame) -> pd.DataFrame:
     """Process sprint data with proper date handling and validation."""
@@ -158,6 +174,6 @@ def process_sprint_data(sprint_data: pd.DataFrame) -> pd.DataFrame:
         processed_data[col] = pd.to_datetime(processed_data[col], errors="coerce")
         # Ensure datetime64 dtype even if all values are NaT
         if not pd.api.types.is_datetime64_dtype(processed_data[col]):
-            processed_data[col] = processed_data[col].astype('datetime64[ns]')
+            processed_data[col] = processed_data[col].astype("datetime64[ns]")
 
     return processed_data

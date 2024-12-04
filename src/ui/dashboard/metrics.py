@@ -1,9 +1,12 @@
 """Dashboard metrics calculation module."""
-from typing import Dict, Any, Optional
-import pandas as pd
+
 import logging
+from typing import Any, Dict, Optional
+
+import pandas as pd
 
 logger = logging.getLogger(__name__)
+
 
 def calculate_delta_percentage(current: float, previous: float) -> float:
     """Calculate percentage change between current and previous values."""
@@ -11,14 +14,22 @@ def calculate_delta_percentage(current: float, previous: float) -> float:
         return 0
     return ((current - previous) / previous) * 100
 
+
 def is_completed_status(status: str) -> bool:
     """Check if a status represents completion."""
-    return str(status).lower() in ["done", "closed", "story done", "epic done", "resolved", "complete", "completed"]
+    return str(status).lower() in [
+        "done",
+        "closed",
+        "story done",
+        "epic done",
+        "resolved",
+        "complete",
+        "completed",
+    ]
+
 
 def get_sprint_metrics(
-    data: pd.DataFrame,
-    current_sprint: str,
-    previous_sprint: Optional[str]
+    data: pd.DataFrame, current_sprint: str, previous_sprint: Optional[str]
 ) -> Dict[str, Any]:
     """
     Calculate sprint metrics with optional comparison to previous sprint.
@@ -34,21 +45,9 @@ def get_sprint_metrics(
     """
     # Initialize metrics structure
     metrics = {
-        "current": {
-            "total_issues": 0,
-            "completed": 0,
-            "story_points": 0
-        },
-        "previous": {
-            "total_issues": 0,
-            "completed": 0,
-            "story_points": 0
-        },
-        "deltas": {
-            "total_issues": 0,
-            "completed": 0,
-            "story_points": 0
-        }
+        "current": {"total_issues": 0, "completed": 0, "story_points": 0},
+        "previous": {"total_issues": 0, "completed": 0, "story_points": 0},
+        "deltas": {"total_issues": 0, "completed": 0, "story_points": 0},
     }
 
     try:
@@ -63,20 +62,32 @@ def get_sprint_metrics(
             return metrics
 
         metrics["current"]["total_issues"] = len(current_data)
-        metrics["current"]["completed"] = len(current_data[current_data["Status"].apply(is_completed_status)])
-        metrics["current"]["story_points"] = current_data[
-            current_data["Status"].apply(is_completed_status)
-        ]["Story Points"].fillna(0).sum()
+        metrics["current"]["completed"] = len(
+            current_data[current_data["Status"].apply(is_completed_status)]
+        )
+        metrics["current"]["story_points"] = (
+            current_data[current_data["Status"].apply(is_completed_status)][
+                "Story Points"
+            ]
+            .fillna(0)
+            .sum()
+        )
 
         # Calculate previous sprint metrics if provided
         if previous_sprint:
             previous_data = data[data["Sprint"] == previous_sprint]
             if not previous_data.empty:
                 metrics["previous"]["total_issues"] = len(previous_data)
-                metrics["previous"]["completed"] = len(previous_data[previous_data["Status"].apply(is_completed_status)])
-                metrics["previous"]["story_points"] = previous_data[
-                    previous_data["Status"].apply(is_completed_status)
-                ]["Story Points"].fillna(0).sum()
+                metrics["previous"]["completed"] = len(
+                    previous_data[previous_data["Status"].apply(is_completed_status)]
+                )
+                metrics["previous"]["story_points"] = (
+                    previous_data[previous_data["Status"].apply(is_completed_status)][
+                        "Story Points"
+                    ]
+                    .fillna(0)
+                    .sum()
+                )
 
                 # Calculate deltas
                 for metric in ["total_issues", "completed", "story_points"]:

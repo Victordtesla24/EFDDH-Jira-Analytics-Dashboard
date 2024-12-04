@@ -1,21 +1,22 @@
 """Analytics page module."""
-import streamlit as st
-import pandas as pd
-import plotly.express as px
+
 import logging
 
-from src.components.visualizations import (
-    show_charts,
-    show_velocity_metrics,
-    show_epic_progress,
-    show_capacity_management,
-)
+import pandas as pd
+import plotly.express as px
+import streamlit as st
+
+from src.components.visualizations import (show_capacity_management,
+                                           show_charts, show_epic_progress,
+                                           show_velocity_metrics)
 
 logger = logging.getLogger(__name__)
+
 
 def is_completed_status(status: str) -> bool:
     """Check if a status represents completion."""
     return status.lower() in ["done", "closed", "story done", "epic done"]
+
 
 def validate_analytics_data(data: pd.DataFrame) -> bool:
     """Validate data for analytics page."""
@@ -31,6 +32,7 @@ def validate_analytics_data(data: pd.DataFrame) -> bool:
 
     return True
 
+
 def show_analytics(data: pd.DataFrame) -> None:
     """Display analytics dashboard."""
     if not validate_analytics_data(data):
@@ -43,23 +45,31 @@ def show_analytics(data: pd.DataFrame) -> None:
         with col1:
             total_issues = len(data)
             st.metric("Total Issues", total_issues)
-            
+
             completed_issues = len(data[data["Status"].apply(is_completed_status)])
             st.metric("Completed Issues", completed_issues)
-            
+
             # Story Points metrics if available
             if "Story Points" in data.columns:
                 total_points = data["Story Points"].fillna(0).sum()
-                completed_points = data[
-                    data["Status"].apply(is_completed_status)
-                ]["Story Points"].fillna(0).sum()
-                
-                completion_rate = (completed_issues / total_issues * 100) if total_issues > 0 else 0
-                
+                completed_points = (
+                    data[data["Status"].apply(is_completed_status)]["Story Points"]
+                    .fillna(0)
+                    .sum()
+                )
+
+                completion_rate = (
+                    (completed_issues / total_issues * 100) if total_issues > 0 else 0
+                )
+
                 st.metric(
                     "Story Points",
                     f"{total_points:.0f}",
-                    f"{completion_rate:.1f}% Complete" if total_points > 0 else "No points"
+                    (
+                        f"{completion_rate:.1f}% Complete"
+                        if total_points > 0
+                        else "No points"
+                    ),
                 )
             else:
                 logger.info("Story Points column not available")

@@ -1,5 +1,7 @@
 import pytest
+
 from src.utils.formatting import format_date, format_days, format_percentage
+
 
 def test_format_percentage():
     """Test percentage formatting."""
@@ -7,11 +9,13 @@ def test_format_percentage():
     assert format_percentage(0) == "0.00%"
     assert format_percentage(100.123) == "100.12%"
 
+
 def test_format_days():
     """Test days formatting."""
     assert format_days(5.5) == "5.50 days"
     assert format_days(0) == "0.00 days"
     assert format_days(10.123) == "10.12 days"
+
 
 def test_format_date():
     """Test date string formatting."""

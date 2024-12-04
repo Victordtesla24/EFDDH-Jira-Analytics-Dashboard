@@ -1,7 +1,9 @@
-import os
-import toml
 import importlib.util
+import os
+
 import pytest
+import toml
+
 
 def test_streamlit_directory_structure():
     """Test required directory structure for Streamlit deployment."""
@@ -19,6 +21,7 @@ def test_streamlit_directory_structure():
     for dir_path in required_dirs:
         assert os.path.isdir(dir_path), f"Missing required directory: {dir_path}"
 
+
 def test_required_files_exist():
     """Test existence of required files for Streamlit deployment."""
     required_files = [
@@ -32,6 +35,7 @@ def test_required_files_exist():
 
     for file_path in required_files:
         assert os.path.isfile(file_path), f"Missing required file: {file_path}"
+
 
 def test_streamlit_config():
     """Test Streamlit configuration settings."""
@@ -50,6 +54,7 @@ def test_streamlit_config():
         logger_config = config["logger"]
         assert logger_config.get("level", "") == "INFO", "Logger level should be INFO"
 
+
 def test_requirements():
     """Test required Python packages."""
     with open("requirements.txt", "r") as f:
@@ -65,6 +70,7 @@ def test_requirements():
 
     for package in required_packages:
         assert package in requirements, f"Missing required package: {package}"
+
 
 def test_main_app_structure():
     """Test main Streamlit app structure and entry points."""
@@ -82,6 +88,7 @@ def test_main_app_structure():
     for func in required_functions:
         assert hasattr(app_module, func), f"Missing required function: {func}"
 
+
 def test_pages_structure():
     """Test pages directory structure and content."""
     pages_dir = "src/pages"
@@ -93,6 +100,7 @@ def test_pages_structure():
     for page in required_pages:
         page_path = os.path.join(pages_dir, page)
         assert os.path.isfile(page_path), f"Missing required page: {page}"
+
 
 def test_setup_py():
     """Test setup.py configuration."""
@@ -110,6 +118,7 @@ def test_setup_py():
     for field in required_setup_fields:
         assert field in setup_content, f"Missing required setup.py field: {field}"
 
+
 def test_readme_content():
     """Test README.md content."""
     with open("README.md", "r") as f:
@@ -125,6 +134,7 @@ def test_readme_content():
 
     for section in required_sections:
         assert section in readme, f"Missing required README section: {section}"
+
 
 def test_gitignore():
     """Test .gitignore configuration."""
@@ -152,6 +162,7 @@ def test_gitignore():
     for ignore in required_ignores:
         assert ignore in gitignore, f"Missing required .gitignore entry: {ignore}"
 
+
 def test_logging_configuration():
     """Test logging configuration."""
     log_dir = "logs"
@@ -160,6 +171,7 @@ def test_logging_configuration():
     # Check logging utility
     logging_util_path = "src/utils/logging_config.py"
     assert os.path.isfile(logging_util_path), "Logging configuration utility not found"
+
 
 def test_deployment_scripts():
     """Test deployment scripts."""

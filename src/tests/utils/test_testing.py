@@ -1,8 +1,10 @@
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 import streamlit as st
 
 from src.utils.testing import capture_streamlit_output
+
 
 @pytest.fixture
 def mock_streamlit():
@@ -21,6 +23,7 @@ def mock_streamlit():
         if func is not None:
             setattr(st, func_name, func)
 
+
 def test_capture_plotly_chart(mock_streamlit):
     mock_figure = MagicMock()
 
@@ -30,6 +33,7 @@ def test_capture_plotly_chart(mock_streamlit):
     assert len(output["charts"]) == 1
     assert output["charts"][0] == mock_figure
 
+
 def test_capture_metric(mock_streamlit):
     with capture_streamlit_output() as output:
         st.metric("Test Label", 42)
@@ -38,6 +42,7 @@ def test_capture_metric(mock_streamlit):
     assert output["metrics"][0]["label"] == "Test Label"
     assert output["metrics"][0]["value"] == 42
 
+
 def test_capture_error(mock_streamlit):
     with capture_streamlit_output() as output:
         st.error("Test Error")
@@ -45,12 +50,14 @@ def test_capture_error(mock_streamlit):
     assert len(output["errors"]) == 1
     assert output["errors"][0] == "Test Error"
 
+
 def test_capture_warning(mock_streamlit):
     with capture_streamlit_output() as output:
         st.warning("Test Warning")
 
     assert len(output["warnings"]) == 1
     assert output["warnings"][0] == "Test Warning"
+
 
 def test_capture_multiple_outputs(mock_streamlit):
     mock_figure1 = MagicMock()
@@ -74,6 +81,7 @@ def test_capture_multiple_outputs(mock_streamlit):
     assert output["errors"][0] == "Error 1"
     assert output["warnings"][0] == "Warning 1"
 
+
 def test_nested_context_managers(mock_streamlit):
     with capture_streamlit_output() as outer:
         st.error("Outer Error")
@@ -90,6 +98,7 @@ def test_nested_context_managers(mock_streamlit):
     assert inner["errors"][0] == "Inner Error"
     assert len(inner["warnings"]) == 0
 
+
 def test_exception_handling(mock_streamlit):
     try:
         with capture_streamlit_output() as output:
@@ -100,6 +109,7 @@ def test_exception_handling(mock_streamlit):
 
     assert len(output["errors"]) == 1
     assert output["errors"][0] == "Test Error"
+
 
 def test_kwargs_handling(mock_streamlit):
     mock_figure = MagicMock()
@@ -113,6 +123,7 @@ def test_kwargs_handling(mock_streamlit):
     assert len(output["metrics"]) == 1
     assert len(output["errors"]) == 1
 
+
 def test_function_restoration_after_exception():
     original_plotly = getattr(st, "plotly_chart", None)
 
@@ -125,6 +136,7 @@ def test_function_restoration_after_exception():
     current_plotly = getattr(st, "plotly_chart", None)
     assert current_plotly == original_plotly
 
+
 def test_missing_original_functions():
     with patch.object(st, "plotly_chart", None):
         with patch.object(st, "metric", None):
@@ -135,6 +147,7 @@ def test_missing_original_functions():
 
             assert len(output["errors"]) == 1
             assert len(output["warnings"]) == 1
+
 
 def test_none_values_in_outputs():
     with capture_streamlit_output() as output:
@@ -148,6 +161,7 @@ def test_none_values_in_outputs():
     assert output["errors"][0] == "None"
     assert len(output["warnings"]) == 1
     assert output["warnings"][0] == "None"
+
 
 def test_complex_kwargs():
     mock_figure = MagicMock()
@@ -168,6 +182,7 @@ def test_complex_kwargs():
     assert len(output["charts"]) == 1
     assert len(output["metrics"]) == 1
     assert len(output["errors"]) == 1
+
 
 def test_multiple_exceptions():
     original_funcs = {
@@ -190,6 +205,7 @@ def test_multiple_exceptions():
     # Verify original functions are restored
     for func_name, original_func in original_funcs.items():
         assert getattr(st, func_name, None) == original_func
+
 
 def test_empty_context():
     with capture_streamlit_output() as output:

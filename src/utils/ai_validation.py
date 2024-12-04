@@ -10,10 +10,12 @@ from src.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
+
 @dataclass
 class ValidationResult:
     is_valid: bool
     messages: Optional[List[str]] = None
+
 
 class BatchPromptProcessor:
     def __init__(self, chunk_size: int = 8192) -> None:
@@ -27,7 +29,7 @@ class BatchPromptProcessor:
         chunks = []
         if len(prompt) > self.chunk_size:
             chunks = [
-                prompt[i:i + self.chunk_size]
+                prompt[i : i + self.chunk_size]
                 for i in range(0, len(prompt), self.chunk_size)
             ]
         else:
@@ -75,6 +77,7 @@ class BatchPromptProcessor:
         except Exception as e:
             logger.error(f"Error in chunk processing: {str(e)}")
             raise
+
 
 class AIValidator:
     def __init__(self) -> None:
@@ -139,6 +142,7 @@ class AIValidator:
             logger.error(f"Batch validation error: {str(e)}")
             return None
 
+
 def validate_visualization_output(output: Optional[Dict[str, Any]]) -> bool:
     """Validate the complete visualization output."""
     if output is None:
@@ -157,6 +161,7 @@ def validate_visualization_output(output: Optional[Dict[str, Any]]) -> bool:
 
     # Validate data consistency
     return validate_data_consistency(output)
+
 
 def validate_chart_elements(chart: Figure) -> bool:
     """Validate individual chart elements."""
@@ -179,6 +184,7 @@ def validate_chart_elements(chart: Figure) -> bool:
         return False
 
     return True
+
 
 def validate_data_consistency(data: Dict[str, Any]) -> bool:
     """Validate consistency between metrics and charts."""

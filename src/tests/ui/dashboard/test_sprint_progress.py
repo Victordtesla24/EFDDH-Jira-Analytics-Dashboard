@@ -1,14 +1,13 @@
 """Tests for sprint progress visualization functionality."""
+
 from datetime import datetime, timedelta
 
 import pandas as pd
 import pytest
 
-from src.ui.dashboard.sprint_progress import (
-    create_burndown_chart,
-    create_status_distribution,
-    create_velocity_chart,
-)
+from src.ui.dashboard.sprint_progress import (create_burndown_chart,
+                                              create_status_distribution,
+                                              create_velocity_chart)
 
 
 @pytest.fixture

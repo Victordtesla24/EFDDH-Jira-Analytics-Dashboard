@@ -1,6 +1,7 @@
 """Shared test fixtures for dashboard tests."""
+
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Union, Any
+from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
 import plotly.graph_objects
@@ -20,7 +21,7 @@ def sample_sprint_data(sample_dates):
     """Create comprehensive sample sprint data for testing."""
     data = []
     sprints = [f"BP: EFDDH Sprint {i}" for i in range(19, 22)]  # Sprints 19-21
-    
+
     issue_types = ["Story", "Bug", "Epic", "Task"]
     priorities = ["Highest", "High", "Medium", "Low"]
     statuses = ["Done", "In Progress", "To Do", "Story Done", "Closed"]
@@ -73,6 +74,7 @@ def empty_sprint_data():
 @pytest.fixture
 def mock_streamlit(monkeypatch):
     """Mock common Streamlit functions."""
+
     class MockDelta:
         def __init__(self):
             self.markdown_calls = []
@@ -95,6 +97,7 @@ def mock_streamlit(monkeypatch):
 @pytest.fixture
 def mock_plotly_figure(monkeypatch):
     """Mock Plotly figure creation."""
+
     class MockFigure:
         def __init__(self, *args, **kwargs):
             self.data = []
@@ -133,6 +136,7 @@ def mock_plotly_figure(monkeypatch):
 @pytest.fixture
 def mock_file_upload_context(monkeypatch):
     """Mock file upload context with Streamlit components."""
+
     class MockUploadContext:
         def __init__(self):
             self.uploaded_file = None

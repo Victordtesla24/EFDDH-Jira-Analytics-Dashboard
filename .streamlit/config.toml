@@ -3,7 +3,7 @@ gatherUsageStats = false
 serverAddress = "localhost"
 
 [server]
-enableCORS = false
+enableCORS = true
 enableWebsocketCompression = true
 enableXsrfProtection = true
 headless = false
@@ -15,8 +15,8 @@ runOnSave = true
 base = "light"
 primaryColor = "#007DBA"
 backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#F0F2F6"
-textColor = "#262730"
+secondaryBackgroundColor = "#F5F5F5"
+textColor = "#1E1E1E"
 font = "sans serif"
 
 [logger]

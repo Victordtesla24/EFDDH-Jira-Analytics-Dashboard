@@ -1,6 +1,7 @@
 """Main Streamlit application."""
-import streamlit as st
+
 import pandas as pd
+import streamlit as st
 
 from src.config.settings import settings
 from src.data.data_loader import prepare_data
@@ -18,9 +19,11 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+
 def initialize_app() -> None:
     """Initialize the Streamlit app with configuration and styling."""
     st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
+
 
 def show_sidebar() -> None:
     """Display the sidebar with controls and instructions."""
@@ -44,6 +47,7 @@ def show_sidebar() -> None:
         """
         )
 
+
 def run_app() -> None:
     """Main application entry point with error handling."""
     try:
@@ -60,7 +64,7 @@ def run_app() -> None:
 
         # Initialize data as empty DataFrame
         data = pd.DataFrame()
-        
+
         with tab1:
             raw_data = handle_file_upload()
             if not isinstance(raw_data, pd.DataFrame) or raw_data.empty:
@@ -83,6 +87,7 @@ def run_app() -> None:
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
         st.stop()
+
 
 if __name__ == "__main__":
     run_app()

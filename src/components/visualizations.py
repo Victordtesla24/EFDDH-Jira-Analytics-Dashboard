@@ -1,12 +1,15 @@
 """Visualization components for analytics."""
-from typing import Dict, List, Optional, Union, Any
+
 import logging
+from typing import Any, Dict, List, Optional, Union
+
 import pandas as pd
 import plotly.express as px
 import streamlit as st
 from plotly.graph_objects import Figure
 
 logger = logging.getLogger(__name__)
+
 
 def get_chart_layout():
     """Get base chart layout settings."""
@@ -18,7 +21,10 @@ def get_chart_layout():
         "margin": dict(l=40, r=40, t=40, b=40),
     }
 
-def validate_data(data: Optional[pd.DataFrame], required_cols: List[str] = None) -> bool:
+
+def validate_data(
+    data: Optional[pd.DataFrame], required_cols: List[str] = None
+) -> bool:
     """Validate DataFrame has required columns and is not empty."""
     if data is None or data.empty:
         return False
@@ -26,11 +32,15 @@ def validate_data(data: Optional[pd.DataFrame], required_cols: List[str] = None)
         return False
     return True
 
+
 def is_completed_status(status: str) -> bool:
     """Check if a status represents completion."""
     return status.lower() in ["done", "closed", "story done", "epic done"]
 
-def calculate_velocity_metrics(data: Optional[pd.DataFrame]) -> Dict[str, Union[float, int]]:
+
+def calculate_velocity_metrics(
+    data: Optional[pd.DataFrame],
+) -> Dict[str, Union[float, int]]:
     """Calculate velocity metrics from data."""
     if not validate_data(data, ["Status", "Story Points"]):
         return {"velocity": 0.0, "completed": 0}
@@ -39,17 +49,15 @@ def calculate_velocity_metrics(data: Optional[pd.DataFrame]) -> Dict[str, Union[
         completed_data = data[data["Status"].apply(is_completed_status)]
         total_points = completed_data["Story Points"].fillna(0).sum()
         num_completed = len(completed_data)
-        
+
         # Assuming 2-week sprints for velocity calculation
         velocity = total_points / 2 if num_completed > 0 else 0.0
-        
-        return {
-            "velocity": velocity,
-            "completed": num_completed
-        }
+
+        return {"velocity": velocity, "completed": num_completed}
     except Exception as e:
         logger.error(f"Error calculating velocity metrics: {str(e)}")
         return {"velocity": 0.0, "completed": 0}
+
 
 def show_charts(data: pd.DataFrame) -> None:
     """Display charts for JIRA data analysis."""
@@ -107,6 +115,7 @@ def show_charts(data: pd.DataFrame) -> None:
         logger.error(f"Error creating charts: {str(e)}")
         st.error("Failed to create visualization")
 
+
 def show_epic_progress(data: pd.DataFrame) -> None:
     """Show epic progress visualization."""
     if not validate_data(data, ["Epic Name", "Story Points", "Status"]):
@@ -118,10 +127,12 @@ def show_epic_progress(data: pd.DataFrame) -> None:
         data["Completed"] = data["Status"].apply(is_completed_status)
         epic_data = (
             data.groupby("Epic Name")
-            .agg({
-                "Story Points": "sum",
-                "Completed": lambda x: sum(x) * 1.0,  # Convert to float
-            })
+            .agg(
+                {
+                    "Story Points": "sum",
+                    "Completed": lambda x: sum(x) * 1.0,  # Convert to float
+                }
+            )
             .reset_index()
         )
 
@@ -155,6 +166,7 @@ def show_epic_progress(data: pd.DataFrame) -> None:
         logger.error(f"Error creating epic progress: {str(e)}")
         st.error("Failed to create epic progress visualization")
 
+
 def show_velocity_metrics(data: pd.DataFrame) -> None:
     """Show velocity metrics."""
     if not validate_data(data, ["Story Points", "Status"]):
@@ -163,16 +175,17 @@ def show_velocity_metrics(data: pd.DataFrame) -> None:
 
     try:
         metrics = calculate_velocity_metrics(data)
-        
+
         col1, col2 = st.columns(2)
         with col1:
             st.metric("Average Velocity", f"{metrics['velocity']:.1f} points/sprint")
         with col2:
-            st.metric("Completed Stories", metrics['completed'])
+            st.metric("Completed Stories", metrics["completed"])
 
     except Exception as e:
         logger.error(f"Error showing velocity metrics: {str(e)}")
         st.error("Failed to display velocity metrics")
+
 
 def show_capacity_management(data: pd.DataFrame) -> None:
     """Show capacity management visualization."""

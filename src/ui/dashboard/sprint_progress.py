@@ -1,6 +1,7 @@
 """Sprint progress visualization functionality."""
+
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Union, Any
+from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -8,7 +9,15 @@ import plotly.graph_objects as go
 
 def is_completed_status(status: str) -> bool:
     """Check if a status represents completion."""
-    return str(status).lower() in ["done", "closed", "story done", "epic done", "resolved", "complete", "completed"]
+    return str(status).lower() in [
+        "done",
+        "closed",
+        "story done",
+        "epic done",
+        "resolved",
+        "complete",
+        "completed",
+    ]
 
 
 def create_burndown_chart(data: pd.DataFrame) -> go.Figure:
@@ -119,7 +128,10 @@ def create_velocity_chart(data: pd.DataFrame) -> go.Figure:
     ):
         # Calculate velocity per sprint using consistent completion status check
         sprint_velocity = (
-            data[data["Status"].apply(is_completed_status) & (data["Story Points"].notna())]
+            data[
+                data["Status"].apply(is_completed_status)
+                & (data["Story Points"].notna())
+            ]
             .groupby("Sprint")["Story Points"]
             .sum()
         )
@@ -135,25 +147,29 @@ def create_velocity_chart(data: pd.DataFrame) -> go.Figure:
                         sprint_numbers[sprint] = int(parts[1].strip())
                 except (ValueError, AttributeError):
                     continue
-            
+
             if sprint_numbers:
                 sprints = sorted(sprint_numbers.keys(), key=lambda x: sprint_numbers[x])
                 velocities = [sprint_velocity[sprint] for sprint in sprints]
                 fig.add_trace(go.Bar(x=sprints, y=velocities, marker_color="#00A3BF"))
             else:
                 # Fallback to unsorted if no valid sprint numbers
-                fig.add_trace(go.Bar(
-                    x=list(sprint_velocity.index),
-                    y=list(sprint_velocity.values),
-                    marker_color="#00A3BF"
-                ))
+                fig.add_trace(
+                    go.Bar(
+                        x=list(sprint_velocity.index),
+                        y=list(sprint_velocity.values),
+                        marker_color="#00A3BF",
+                    )
+                )
         except Exception:
             # Fallback to unsorted if any error occurs
-            fig.add_trace(go.Bar(
-                x=list(sprint_velocity.index),
-                y=list(sprint_velocity.values),
-                marker_color="#00A3BF"
-            ))
+            fig.add_trace(
+                go.Bar(
+                    x=list(sprint_velocity.index),
+                    y=list(sprint_velocity.values),
+                    marker_color="#00A3BF",
+                )
+            )
     else:
         # Add empty trace for consistent layout
         fig.add_trace(go.Bar(x=["No Data"], y=[0], marker_color="#00A3BF"))

@@ -1,12 +1,15 @@
-from typing import Dict, List, Optional, Union, Any
-from pathlib import Path
 import logging
 import re
-import streamlit as st
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
+
 import pandas as pd
+import streamlit as st
+
 from src.data.processors import process_jira_data
 
 logger = logging.getLogger(__name__)
+
 
 @st.cache_data(show_spinner=False)
 def load_data(file_path: Optional[Path] = None) -> pd.DataFrame:
@@ -45,6 +48,7 @@ def load_data(file_path: Optional[Path] = None) -> pd.DataFrame:
         st.error(f"Error loading data: {str(e)}")
         return pd.DataFrame()
 
+
 @st.cache_data(show_spinner=False)
 def prepare_data(df: pd.DataFrame) -> pd.DataFrame:
     """Prepare and clean the data for analysis."""
@@ -66,7 +70,7 @@ def prepare_data(df: pd.DataFrame) -> pd.DataFrame:
                 processed_df[col] = pd.to_datetime(processed_df[col], errors="coerce")
                 # Ensure datetime64 dtype even if all values are NaT
                 if not pd.api.types.is_datetime64_dtype(processed_df[col]):
-                    processed_df[col] = processed_df[col].astype('datetime64[ns]')
+                    processed_df[col] = processed_df[col].astype("datetime64[ns]")
 
         # Basic data cleaning - only drop rows with missing required fields
         if "Issue key" in processed_df.columns and "Created" in processed_df.columns:
@@ -79,7 +83,9 @@ def prepare_data(df: pd.DataFrame) -> pd.DataFrame:
                 )
 
         # Ensure Story Points is numeric
-        story_points_col = next((col for col in processed_df.columns if col.lower() == "story points"), None)
+        story_points_col = next(
+            (col for col in processed_df.columns if col.lower() == "story points"), None
+        )
         if story_points_col:
             logger.info("Converting Story Points to numeric")
             processed_df["Story Points"] = pd.to_numeric(
@@ -87,22 +93,32 @@ def prepare_data(df: pd.DataFrame) -> pd.DataFrame:
             ).fillna(0)
 
         # Ensure Status has valid values and consistent casing
-        status_col = next((col for col in processed_df.columns if col.lower() == "status"), None)
+        status_col = next(
+            (col for col in processed_df.columns if col.lower() == "status"), None
+        )
         if status_col:
             logger.info("Cleaning Status values")
             processed_df["Status"] = processed_df[status_col].fillna("In Progress")
 
         # Ensure Priority is a string
-        priority_col = next((col for col in processed_df.columns if col.lower() == "priority"), None)
+        priority_col = next(
+            (col for col in processed_df.columns if col.lower() == "priority"), None
+        )
         if priority_col:
             logger.info("Cleaning Priority values")
-            processed_df["Priority"] = processed_df[priority_col].fillna("Medium").astype(str)
+            processed_df["Priority"] = (
+                processed_df[priority_col].fillna("Medium").astype(str)
+            )
 
         # Ensure Issue Type is a string
-        issue_type_col = next((col for col in processed_df.columns if col.lower() == "issue type"), None)
+        issue_type_col = next(
+            (col for col in processed_df.columns if col.lower() == "issue type"), None
+        )
         if issue_type_col:
             logger.info("Cleaning Issue Type values")
-            processed_df["Issue Type"] = processed_df[issue_type_col].fillna("Story").astype(str)
+            processed_df["Issue Type"] = (
+                processed_df[issue_type_col].fillna("Story").astype(str)
+            )
 
         # Clean Sprint column - handle multiple sprints per issue
         sprint_cols = [col for col in processed_df.columns if col.lower() == "sprint"]
@@ -111,12 +127,21 @@ def prepare_data(df: pd.DataFrame) -> pd.DataFrame:
             # Get the first non-empty sprint value for each row
             sprints = processed_df[sprint_cols].fillna("")
             processed_df["Sprint"] = sprints.apply(
-                lambda row: next((s for s in row if pd.notna(s) and str(s).strip()), "No Sprint"),
-                axis=1
+                lambda row: next(
+                    (s for s in row if pd.notna(s) and str(s).strip()), "No Sprint"
+                ),
+                axis=1,
             )
 
         # Handle Epic Link/Name
-        epic_link_col = next((col for col in processed_df.columns if col.lower() in ["epic link", "epic name"]), None)
+        epic_link_col = next(
+            (
+                col
+                for col in processed_df.columns
+                if col.lower() in ["epic link", "epic name"]
+            ),
+            None,
+        )
         if epic_link_col:
             logger.info("Cleaning Epic Link values")
             processed_df["Epic Link"] = processed_df[epic_link_col].fillna("No Epic")

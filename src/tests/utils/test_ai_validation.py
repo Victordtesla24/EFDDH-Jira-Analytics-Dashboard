@@ -1,18 +1,16 @@
 import time
-import pytest
-from unittest.mock import Mock, patch
-import anthropic
-from plotly.graph_objects import Figure
 from dataclasses import asdict
+from unittest.mock import Mock, patch
 
-from src.utils.ai_validation import (
-    AIValidator,
-    BatchPromptProcessor,
-    ValidationResult,
-    validate_chart_elements,
-    validate_data_consistency,
-    validate_visualization_output,
-)
+import anthropic
+import pytest
+from plotly.graph_objects import Figure
+
+from src.utils.ai_validation import (AIValidator, BatchPromptProcessor,
+                                     ValidationResult, validate_chart_elements,
+                                     validate_data_consistency,
+                                     validate_visualization_output)
+
 
 @pytest.fixture
 def sample_visualization():
@@ -22,6 +20,7 @@ def sample_visualization():
     fig.update_layout(title="Test Chart")
 
     return {"charts": [fig], "metrics": [{"label": "Total", "value": 100}]}
+
 
 def test_validation_result():
     """Test ValidationResult dataclass."""
@@ -43,6 +42,7 @@ def test_validation_result():
     result_dict = asdict(ValidationResult(is_valid=True, messages=["Test"]))
     assert result_dict == {"is_valid": True, "messages": ["Test"]}
 
+
 def test_validate_visualization(sample_visualization):
     """Test visualization validation with various scenarios."""
     # Test valid visualization
@@ -61,6 +61,7 @@ def test_validate_visualization(sample_visualization):
 
     # Test None input
     assert not validate_visualization_output(None)
+
 
 def test_validate_chart_elements():
     """Test chart element validation."""
@@ -87,6 +88,7 @@ def test_validate_chart_elements():
     # Test empty figure without layout modifications
     fig = Figure()
     assert not validate_chart_elements(fig)
+
 
 def test_validate_data_consistency():
     """Test data consistency validation."""
@@ -118,6 +120,7 @@ def test_validate_data_consistency():
     invalid_data = {"charts": [Figure()]}
     assert not validate_data_consistency(invalid_data)
 
+
 @pytest.fixture
 def mock_anthropic():
     with patch("anthropic.Anthropic") as mock:
@@ -134,11 +137,13 @@ def mock_anthropic():
         mock.return_value = mock_instance
         yield mock
 
+
 def test_batch_processor_chunking():
     """Test that text is correctly split into chunks."""
     text = "This is a test message that should be split"
-    chunks = [text[i:i+10] for i in range(0, len(text), 10)]
+    chunks = [text[i : i + 10] for i in range(0, len(text), 10)]
     assert len(chunks) == 5  # 45 characters should create 5 chunks of size 10
+
 
 def test_batch_processor_rate_limiting(mock_anthropic):
     """Test that rate limiting is enforced between API calls."""
@@ -151,6 +156,7 @@ def test_batch_processor_rate_limiting(mock_anthropic):
 
     # With min_delay of 0.5s, processing should take at least that long
     assert end_time - start_time >= 0.5
+
 
 def test_batch_processor_api_error_handling(mock_anthropic):
     """Test error handling when API calls fail."""
@@ -173,6 +179,7 @@ def test_batch_processor_api_error_handling(mock_anthropic):
     with pytest.raises(anthropic.RateLimitError):
         processor.process_chunks("Test message")
 
+
 def test_batch_processor_successful_processing(mock_anthropic):
     """Test successful processing of chunks."""
     processor = BatchPromptProcessor(chunk_size=20)  # Increased chunk size
@@ -193,6 +200,7 @@ def test_batch_processor_successful_processing(mock_anthropic):
     assert len(results) == 1
     assert results[0] == "Test response"
 
+
 def test_batch_processor_batch_processing(mock_anthropic):
     """Test batch message processing."""
     processor = BatchPromptProcessor()
@@ -210,6 +218,7 @@ def test_batch_processor_batch_processing(mock_anthropic):
     result = processor.process_batch(requests)
     assert result == {"responses": ["Test batch response"]}
 
+
 def test_batch_processor_batch_error_handling(mock_anthropic):
     """Test error handling in batch processing."""
     processor = BatchPromptProcessor()
@@ -226,10 +235,13 @@ def test_batch_processor_batch_error_handling(mock_anthropic):
         body={"error": {"message": "Rate limit exceeded"}},
     )
 
-    mock_anthropic.return_value.beta.messages.batches.create.side_effect = rate_limit_error
+    mock_anthropic.return_value.beta.messages.batches.create.side_effect = (
+        rate_limit_error
+    )
 
     with pytest.raises(anthropic.RateLimitError):
         processor.process_batch([{"custom_id": "test", "params": {}}])
+
 
 def test_batch_processor_general_error(mock_anthropic):
     """Test general error handling in batch processing."""
@@ -240,6 +252,7 @@ def test_batch_processor_general_error(mock_anthropic):
 
     with pytest.raises(Exception):
         processor.process_chunks("Test message")
+
 
 def test_ai_validator_rate_limiting(mock_anthropic):
     """Test AIValidator rate limiting."""
@@ -252,6 +265,7 @@ def test_ai_validator_rate_limiting(mock_anthropic):
 
     # With min_delay of 1s, two calls should take at least that long
     assert end_time - start_time >= 1
+
 
 def test_ai_validator_caching(mock_anthropic):
     """Test AIValidator response caching."""
@@ -266,6 +280,7 @@ def test_ai_validator_caching(mock_anthropic):
     response2 = validator.get_validation_response("Test prompt")
     assert response2 == "Test response"
     assert mock_anthropic.return_value.messages.create.call_count == 1
+
 
 def test_ai_validator_error_handling(mock_anthropic):
     """Test AIValidator error handling."""
@@ -288,6 +303,7 @@ def test_ai_validator_error_handling(mock_anthropic):
     response = validator.get_validation_response("Test prompt")
     assert response is None
 
+
 def test_ai_validator_general_error(mock_anthropic):
     """Test general error handling in AIValidator."""
     validator = AIValidator()
@@ -298,6 +314,7 @@ def test_ai_validator_general_error(mock_anthropic):
     response = validator.get_validation_response("Test prompt")
     assert response is None
 
+
 def test_ai_validator_batch_validation(mock_anthropic):
     """Test batch validation functionality."""
     validator = AIValidator()
@@ -305,6 +322,7 @@ def test_ai_validator_batch_validation(mock_anthropic):
 
     result = validator.validate_batch(prompts)
     assert result == {"responses": ["Test batch response"]}
+
 
 def test_ai_validator_batch_validation_error(mock_anthropic):
     """Test error handling in batch validation."""

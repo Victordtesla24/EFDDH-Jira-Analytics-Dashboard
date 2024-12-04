@@ -1,4 +1,5 @@
 """Tests for dashboard metrics functionality."""
+
 from datetime import datetime, timedelta
 
 import pandas as pd

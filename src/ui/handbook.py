@@ -1,6 +1,8 @@
 """JIRA Handbook UI component."""
-import streamlit as st
+
 import pandas as pd
+import streamlit as st
+
 
 def show_handbook(data: pd.DataFrame = None) -> None:
     """Display the JIRA handbook documentation."""

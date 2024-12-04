@@ -1,8 +1,10 @@
 """Agile Process UI component."""
-import streamlit as st
+
 import pandas as pd
-import plotly.graph_objects as go
 import plotly.express as px
+import plotly.graph_objects as go
+import streamlit as st
+
 
 def create_poker_card(value: str, description: str) -> str:
     """Create a visual poker card using HTML/CSS."""
@@ -34,6 +36,7 @@ def create_poker_card(value: str, description: str) -> str:
             </div>
         </div>
     """
+
 
 def create_process_step(number: int, title: str, duration: str, details: list) -> str:
     """Create a visual process step using HTML/CSS."""
@@ -74,6 +77,7 @@ def create_process_step(number: int, title: str, duration: str, details: list) -
             </ul>
         </div>
     """
+
 
 def show_agile_process(data: pd.DataFrame = None) -> None:
     """Display the Agile process documentation with enhanced Planning Poker guide."""

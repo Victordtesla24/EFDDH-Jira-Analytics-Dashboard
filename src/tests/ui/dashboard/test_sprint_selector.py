@@ -1,10 +1,12 @@
 """Tests for sprint selector functionality."""
+
 from datetime import datetime, timedelta
 
 import pandas as pd
 import pytest
 
-from src.ui.dashboard.sprint_selector import get_available_sprints, get_sprint_data
+from src.ui.dashboard.sprint_selector import (get_available_sprints,
+                                              get_sprint_data)
 
 
 @pytest.fixture
