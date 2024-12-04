@@ -1,14 +1,12 @@
 [browser]
 gatherUsageStats = false
-serverAddress = "localhost"
 
 [server]
 enableCORS = true
 enableWebsocketCompression = true
 enableXsrfProtection = true
-headless = false
+headless = true
 maxUploadSize = 200
-port = 8501
 runOnSave = true
 
 [theme]
