@@ -5,8 +5,8 @@ from typing import Any, Dict, List, Optional, Union
 import pandas as pd
 import streamlit as st
 
-from src.ui.dashboard.content import show_dashboard_content
-from src.ui.dashboard.header import show_header
+from ui.dashboard.content import show_dashboard_content
+from ui.dashboard.header import show_header
 
 
 def is_completed_status(status: str) -> bool:

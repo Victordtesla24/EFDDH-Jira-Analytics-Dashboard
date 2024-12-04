@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 import pytest
 
-from src.ui.dashboard.metrics import get_sprint_metrics
+from ui.dashboard.metrics import get_sprint_metrics
 
 
 @pytest.fixture

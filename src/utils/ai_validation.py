@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional
 import anthropic
 from plotly.graph_objects import Figure  # type: ignore
 
-from src.utils.logging import get_logger
+from utils.logging import get_logger
 
 logger = get_logger(__name__)
 

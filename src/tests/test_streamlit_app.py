@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 import pandas as pd
 import pytest
 
-from src.streamlit_app import (filter_data, initialize_app,
+from streamlit_app import (filter_data, initialize_app,
                                load_dashboard_data, run_app,
                                show_agile_process, show_filters, show_handbook)
 

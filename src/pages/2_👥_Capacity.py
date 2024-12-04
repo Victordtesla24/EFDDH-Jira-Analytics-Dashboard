@@ -2,8 +2,8 @@
 
 import streamlit as st
 
-from src.components.visualizations import show_capacity_management
-from src.data.data_loader import load_data, prepare_data
+from components.visualizations import show_capacity_management
+from data.data_loader import load_data, prepare_data
 
 # Page configuration
 st.set_page_config(

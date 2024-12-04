@@ -2,7 +2,7 @@ import logging
 
 import pytest
 
-from src.utils.monitoring import MetricsMonitor
+from utils.monitoring import MetricsMonitor
 
 
 @pytest.fixture

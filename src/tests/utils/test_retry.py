@@ -2,7 +2,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from src.utils.retry import retry
+from utils.retry import retry
 
 
 def test_successful_execution():

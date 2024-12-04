@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, Union
 import pandas as pd
 import streamlit as st
 
-from src.data.processors import process_jira_data
+from data.processors import process_jira_data
 
 logger = logging.getLogger(__name__)
 

@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 import streamlit as st
 
-from src.utils.testing import capture_streamlit_output
+from utils.testing import capture_streamlit_output
 
 
 @pytest.fixture

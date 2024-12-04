@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 import streamlit as st
 
-from src.ui.dashboard.file_handler import (handle_file_upload,
+from ui.dashboard.file_handler import (handle_file_upload,
                                            validate_csv_structure)
 
 

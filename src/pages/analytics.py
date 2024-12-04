@@ -6,7 +6,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from src.components.visualizations import (show_capacity_management,
+from components.visualizations import (show_capacity_management,
                                            show_charts, show_epic_progress,
                                            show_velocity_metrics)
 

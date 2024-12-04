@@ -3,9 +3,9 @@ from pathlib import Path
 
 import pytest
 
-from src.utils.caching import cache_data
-from src.utils.formatting import format_date
-from src.utils.logging import setup_logging
+from utils.caching import cache_data
+from utils.formatting import format_date
+from utils.logging import setup_logging
 
 
 @pytest.fixture(autouse=True)

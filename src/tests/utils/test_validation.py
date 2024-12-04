@@ -3,7 +3,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from src.utils.validation import (ensure_test_data, validate_calculations,
+from utils.validation import (ensure_test_data, validate_calculations,
                                   validate_data_types, validate_display_format,
                                   validate_epic_data, validate_input_data,
                                   validate_jira_data, validate_metric_output,

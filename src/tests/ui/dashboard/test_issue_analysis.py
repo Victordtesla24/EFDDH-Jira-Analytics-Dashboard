@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 import pytest
 
-from src.ui.dashboard.issue_analysis import (create_daily_created_trend,
+from ui.dashboard.issue_analysis import (create_daily_created_trend,
                                              create_issue_types_chart,
                                              create_priority_distribution,
                                              create_story_points_distribution)

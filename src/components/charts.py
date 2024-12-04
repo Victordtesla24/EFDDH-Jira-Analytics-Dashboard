@@ -5,8 +5,8 @@ import plotly.express as px
 import streamlit as st
 from plotly.graph_objects import Figure
 
-from src.config.settings import settings
-from src.utils.formatting import get_anz_template
+from config.settings import settings
+from utils.formatting import get_anz_template
 
 
 def create_interactive_charts(filtered_data: pd.DataFrame) -> None:

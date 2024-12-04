@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 import pandas as pd
 import pytest
 
-from src.data.processors import (JiraDataProcessor, process_jira_data,
+from data.processors import (JiraDataProcessor, process_jira_data,
                                  process_sprint_data)
 
 

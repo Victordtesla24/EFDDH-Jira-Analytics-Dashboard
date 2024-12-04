@@ -5,15 +5,15 @@ from typing import Any, Dict, List, Optional, Union
 import pandas as pd
 import streamlit as st
 
-from src.ui.dashboard.issue_analysis import (create_daily_created_trend,
+from ui.dashboard.issue_analysis import (create_daily_created_trend,
                                              create_issue_types_chart,
                                              create_priority_distribution,
                                              create_story_points_distribution)
-from src.ui.dashboard.metrics import get_sprint_metrics
-from src.ui.dashboard.sprint_progress import (create_burndown_chart,
+from ui.dashboard.metrics import get_sprint_metrics
+from ui.dashboard.sprint_progress import (create_burndown_chart,
                                               create_status_distribution,
                                               create_velocity_chart)
-from src.ui.dashboard.sprint_selector import (get_available_sprints,
+from ui.dashboard.sprint_selector import (get_available_sprints,
                                               get_sprint_data)
 
 

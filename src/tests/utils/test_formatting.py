@@ -1,6 +1,6 @@
 import pytest
 
-from src.utils.formatting import format_date, format_days, format_percentage
+from utils.formatting import format_date, format_days, format_percentage
 
 
 def test_format_percentage():

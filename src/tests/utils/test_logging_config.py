@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, call, patch
 
 import pytest
 
-from src.utils.logging_config import setup_logging
+from utils.logging_config import setup_logging
 
 
 def test_setup_logging(tmp_path):

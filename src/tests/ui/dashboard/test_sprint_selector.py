@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 import pytest
 
-from src.ui.dashboard.sprint_selector import (get_available_sprints,
+from ui.dashboard.sprint_selector import (get_available_sprints,
                                               get_sprint_data)
 
 

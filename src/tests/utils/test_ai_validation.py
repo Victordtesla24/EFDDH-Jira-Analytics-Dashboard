@@ -6,7 +6,7 @@ import anthropic
 import pytest
 from plotly.graph_objects import Figure
 
-from src.utils.ai_validation import (AIValidator, BatchPromptProcessor,
+from utils.ai_validation import (AIValidator, BatchPromptProcessor,
                                      ValidationResult, validate_chart_elements,
                                      validate_data_consistency,
                                      validate_visualization_output)

@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional, Union
 
 import streamlit as st
 
-from src.ui.dashboard.constants import create_metric_card
+from ui.dashboard.constants import create_metric_card
 
 
 def show_header(metrics: dict, current_sprint: str) -> None:

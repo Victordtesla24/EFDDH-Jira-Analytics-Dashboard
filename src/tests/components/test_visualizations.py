@@ -5,7 +5,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import pytest
 
-from src.components.visualizations import (calculate_velocity_metrics,
+from components.visualizations import (calculate_velocity_metrics,
                                            show_analytics,
                                            show_capacity_management,
                                            show_charts, show_epic_progress,

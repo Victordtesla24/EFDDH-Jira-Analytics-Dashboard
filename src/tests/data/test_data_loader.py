@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, Mock, patch
 import pandas as pd
 import pytest
 
-from src.data.data_loader import load_data, prepare_data
+from data.data_loader import load_data, prepare_data
 
 
 @pytest.fixture

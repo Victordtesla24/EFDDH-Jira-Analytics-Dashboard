@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
-from src.utils.health_checks import (check_data_availability,
+from utils.health_checks import (check_data_availability,
                                      check_metric_calculations,
                                      check_visualization_components,
                                      verify_dashboard_health)

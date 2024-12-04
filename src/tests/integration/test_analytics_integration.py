@@ -5,8 +5,8 @@ import plotly.graph_objects as go
 import pytest
 import streamlit as st
 
-from src.data.data_loader import prepare_data
-from src.pages.analytics import show_analytics
+from data.data_loader import prepare_data
+from pages.analytics import show_analytics
 
 
 @pytest.fixture

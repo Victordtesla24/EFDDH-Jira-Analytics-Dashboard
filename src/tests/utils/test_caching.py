@@ -2,7 +2,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from src.utils.caching import cache_data
+from utils.caching import cache_data
 
 
 def test_basic_caching():

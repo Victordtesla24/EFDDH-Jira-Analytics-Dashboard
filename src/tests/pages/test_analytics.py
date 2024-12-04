@@ -38,7 +38,7 @@ def mock_streamlit(mocker):
 
 def test_analytics_page_handles_empty_data(mock_streamlit):
     """Test analytics page with empty data."""
-    from src.pages.analytics import show_analytics
+    from pages.analytics import show_analytics
 
     show_analytics(None)
     assert mock_streamlit["error"].called
@@ -46,7 +46,7 @@ def test_analytics_page_handles_empty_data(mock_streamlit):
 
 def test_analytics_page_handles_missing_columns(mock_streamlit, test_data):
     """Test analytics page with missing columns."""
-    from src.pages.analytics import show_analytics
+    from pages.analytics import show_analytics
 
     test_data = test_data.drop(columns=["Story Points"])
     show_analytics(test_data)
