@@ -3,13 +3,13 @@
 import pandas as pd
 import streamlit as st
 
-from src.config.settings import settings
-from src.data.data_loader import prepare_data
-from src.ui.agile_process import show_agile_process
-from src.ui.dashboard.file_handler import handle_file_upload
-from src.ui.dashboard.view import show_dashboard
-from src.ui.handbook import show_handbook
-from src.ui.styles import CUSTOM_CSS
+from config.settings import settings
+from data.data_loader import prepare_data
+from ui.agile_process import show_agile_process
+from ui.dashboard.file_handler import handle_file_upload
+from ui.dashboard.view import show_dashboard
+from ui.handbook import show_handbook
+from ui.styles import CUSTOM_CSS
 
 # Must be the first Streamlit command
 st.set_page_config(
