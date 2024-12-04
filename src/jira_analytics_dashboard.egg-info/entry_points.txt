@@ -1,0 +1,2 @@
+[console_scripts]
+jira-dashboard = streamlit_app:main
